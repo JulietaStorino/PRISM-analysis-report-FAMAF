@@ -1,11 +1,11 @@
 \documentclass{article}
 
 % Language setting
-% Replace `english' with e.g. `spanish' to change the document language
-\usepackage[english]{babel}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amssymb}
 
 % Set page size and margins
-% Replace `letterpaper' with `a4paper' for UK/EU standard size
 \usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
 
 % Useful packages
@@ -13,105 +13,123 @@
 \usepackage{graphicx}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
 
-\title{Your Paper}
-\author{You}
+\title{\textbf{PRISM: Verificación Formal de Sistemas con Modelos Probabilísticos}}
+\author{Angeles Carrara, Julieta Paola Storino, Mateo Carranza Velez\\ \\
+\small{Facultad de Matemática, Astronomía, Física y Computación, Universidad Nacional de Córdoba.}\\
+\small{\{mail,julieta\_storino,angeles.carrara\}@mi.unc.edu.ar}\\
+}
+
+\date{}
 
 \begin{document}
 \maketitle
-
 \begin{abstract}
-Your abstract.
+Este documento presenta una introducción a la herramienta PRISM\cite{KNP11}, un entorno para el modelado y análisis formal de sistemas con comportamientos aleatorios o probabilísticos, que permite la verificación rigurosa de propiedades cuantitativas y cualitativas sobre modelos como cadenas de Markov (discretas y continuas), procesos de decisión de Markov y autómatas probabilísticos. Se abordan los principales aspectos relacionados con su desarrollo y aplicación, incluyendo: el contexto de creación de la herramienta, sus objetivos fundamentales, una descripción de sus funcionalidades desde la perspectiva del usuario, los componentes técnicos que la sustentan, casos de estudio documentados —tanto exitosos como con limitaciones—, una comparación con otras herramientas similares en el ámbito de la verificación formal, y un análisis detallado de un caso de estudio seleccionado.
 \end{abstract}
 
-\section{Introduction}
+\section{Introducción}
 
-Your introduction goes here! Simply start writing your document and use the Recompile button to view the updated PDF preview. Examples of commonly used commands and features are listed below, to help you get started.
+Los sistemas informáticos se encuentran cada vez más integrados en múltiples áreas del conocimiento, enfrentando riesgos cada vez más críticos y de mayor impacto. Estos riesgos abarcan desde errores que pueden poner en peligro vidas humanas —como sobredosis de radiación provocado por condiciones de carrera en sistemas médicos \cite{LT93}—, hasta pérdidas económicas multimillonarias —como autodestrucción en cohetes espaciales provocado por conversión incorrecta de punto flotante a entero en sistemas de referencia inercial \cite{Lan96}—. Frente a esta realidad, se vuelve esencial garantizar sistemas más robustos, confiables y con una tolerancia al fallo mínima. Para ello, es necesario recurrir a modelos formales que permitan describir con precisión las partes relevantes del sistema, conservando un nivel de abstracción que facilite su análisis y verificación.
 
-Once you're familiar with the editor, you can find various project settings in the Overleaf menu, accessed via the button in the very top left of the editor. To view tutorials, user guides, and further documentation, please visit our \href{https://www.overleaf.com/learn}{help library}, or head to our plans page to \href{https://www.overleaf.com/user/subscription/plans}{choose your plan}.
+\subsection{Verificación de modelos}
 
-\section{Some examples to get started}
+Existen diversas técnicas para verificar la corrección funcional de un sistema, entre las que se incluyen la demostración de teoremas, la simulación, la prueba (testing), y la verificación de modelos (model checking). En nuestro informe, nos enfocamos en esta última, una técnica que consiste en explorar exhaustivamente todos los estados posibles del sistema mediante un enfoque de fuerza bruta, con el objetivo de comprobar que un modelo dado cumple efectivamente con una propiedad específica \cite{BK07}.
 
-\subsection{How to create Sections and Subsections}
+Este enfoque tradicional de verificación de modelos busca proporcionar una garantía completamente precisa sobre el cumplimiento o no de una propiedad en el modelo analizado. Sin embargo, en muchos escenarios no es posible ni deseable ofrecer garantías absolutas. Por ejemplo, en protocolos de comunicación o redes inalámbricas, es necesario considerar una cierta probabilidad de pérdida de mensajes.
 
-Simply use the section and subsection commands, as in this example document! With Overleaf, all the formatting and numbering is handled automatically according to the template you've chosen. If you're using the Visual Editor, you can also create new section and subsections via the buttons in the editor toolbar.
+\subsection{Verificación probabilística de modelos}
 
-\subsection{How to include Figures}
+La verificación de modelos probabilísticos (Probabilistic Model Checking) es una extensión de la verificación de modelos clásica que nos permite establecer la validez de una propiedad dentro de un modelo dado. Es una técnica automática de verificación formal diseñada para analizar sistemas que presentan comportamientos estocásticos.
+A diferencia de la verificación tradicional, cuyo resultado es estrictamente booleano (la propiedad se cumple o no), la verificación probabilística permite obtener valores cuantitativos, como la probabilidad de alcanzar un estado crítico o el tiempo esperado hasta que ocurra un evento. Esta capacidad resulta especialmente útil en el análisis de sistemas que interactúan con entornos inciertos, como redes de comunicación, sistemas embebidos y protocolos distribuidos.
 
-First you have to upload the image file from your computer using the upload link in the file-tree menu. Then use the includegraphics command to include it in your document. Use the figure environment and the caption command to add a number and a caption to your figure. See the code for Figure \ref{fig:frog} in this section for an example.
+\subsection{Modelos probabilísticos}
+Para comprobar el modelo de un sistema que muestra un comportamiento estocástico, primero necesitaremos construir un modelo probabilístico formal de ese sistema. Existen varias representaciones de modelos probabilísticos de uso común para sistemas estocásticos, pero nos vamos a enfocar en los principales modelos soportados por la herramienta a desarrollar.
 
-Note that your figure will automatically be placed in the most appropriate place for it, given the surrounding text and taking into account other figures or tables that may be close by. You can find out more about adding images to your documents in this help article on \href{https://www.overleaf.com/learn/how-to/Including_images_on_Overleaf}{including images on Overleaf}.
+\subsubsection{Cadenas de Markov de Tiempo Discreto (DTMC)}
 
-\begin{figure}
-\centering
-\includegraphics[width=0.25\linewidth]{images/frog.jpg}
-\caption{\label{fig:frog}This frog was uploaded via the file-tree menu.}
-\end{figure}
+Las DTMC son modelos en los que el comportamiento del sistema evoluciona en pasos discretos, y en cada paso existe una distribución de probabilidad sobre los posibles estados siguientes. Se representan como grafos dirigidos etiquetados con probabilidades de transición. La probabilidad de realizar una transición del estado $s_0$ a un estado $s_1$ se denota como $\pi(s_0, s_1)$, y para cada estado las probabilidades de transición deben sumar $1$\cite{KNP02}. Estos modelos son apropiados para sistemas donde el tiempo se modela como secuencias de eventos discretos y completamente probabilísticos, como protocolos de comunicación simples o sistemas sin decisiones controlables.
 
-\subsection{How to add Tables}
+\subsubsection{Procesos de Decisión de Markov (MDP)}
 
-Use the table and tabular environments for basic tables --- see Table~\ref{tab:widgets}, for example. For more information, please see this help article on \href{https://www.overleaf.com/learn/latex/tables}{tables}. 
+Los MDP extienden las DTMC introduciendo no determinismo, lo que permite modelar elecciones o decisiones controlables dentro del sistema. En cada estado, el sistema puede tener varias acciones posibles, y cada acción induce una distribución de probabilidad sobre los estados sucesores. Este modelo es útil para representar la interacción entre el entorno (probabilístico) y un controlador (no determinista). Permiten modelar, por ejemplo, sistemas con múltiples componentes que operan en paralelo de manera asincrónica, donde ciertas decisiones dependen del contexto de ejecución.
 
-\begin{table}
-\centering
-\begin{tabular}{l|r}
-Item & Quantity \\\hline
-Widgets & 42 \\
-Gadgets & 13
-\end{tabular}
-\caption{\label{tab:widgets}An example table.}
-\end{table}
+\subsubsection{Cadenas de Markov de Tiempo Continuo (CTMC)}
 
-\subsection{How to add Comments and Track Changes}
+En las CTMC, las transiciones entre estados no ocurren en pasos discretos sino después de un tiempo continuo aleatorio. Cada transición está asociada con una tasa $\rho(s_0, s_1)$ que determina la probabilidad de moverse del estado $s_0$ al $s_1$ en un cierto tiempo $t$, siguiendo una distribución exponencial. La probabilidad de que esa transición ocurra dentro del intervalo de tiempo $t$ es $1 - e^{-\rho(s_0,s_1)\cdot t}$. Este tipo de modelos es adecuado para analizar sistemas donde los eventos ocurren de forma continua en el tiempo, como redes de colas o sistemas biológicos.
 
-Comments can be added to your project by highlighting some text and clicking ``Add comment'' in the top right of the editor pane. To view existing comments, click on the Review menu in the toolbar above. To reply to a comment, click on the Reply button in the lower right corner of the comment. You can close the Review pane by clicking its name on the toolbar when you're done reviewing for the time being.
+\subsubsection{Autómatas Temporizados Probabilísticos (PTAs)}
 
-Track changes are available on all our \href{https://www.overleaf.com/user/subscription/plans}{premium plans}, and can be toggled on or off using the option at the top of the Review pane. Track changes allow you to keep track of every change made to the document, along with the person making the change. 
+Los PTAs combinan aspectos de los MDP (no determinismo y probabilidad) con restricciones temporales explícitas sobre el comportamiento. Se modelan con relojes (clocks) que evolucionan en tiempo real, y las transiciones pueden depender de condiciones temporales (por ejemplo, \textit{esperar al menos 5 segundos antes de enviar un mensaje}). Los PTAs permiten representar sistemas donde el tiempo es un recurso fundamental y las decisiones deben tomarse en ventanas temporales específicas, como en protocolos de red con tiempos límite o sistemas embebidos con control en tiempo real.
 
-\subsection{How to add Lists}
+\subsection{Lógica para verificar modelos probabilísticos}
 
-You can make lists with automatic numbering \dots
+Una vez que el sistema está representado por un modelo, queremos comprobar si este cumple una especificación formal. Para ello es necesario definir el lenguaje que utilizaremos para dar la especificación y construir las propiedades que pretendamos verificar. Para ello utilizaremos lógicas temporales.
 
-\begin{enumerate}
-\item Like this,
-\item and like this.
-\end{enumerate}
-\dots or bullet points \dots
+\subsubsection{Lógica de Árbol Computacional Probabilística (PCTL)}
+
+Fue introducida por Hansson y Jonsson en \cite{HH94} como una extensión de la lógica temporal CTL con tiempos discretos y probabilidades. \par
+
+\textbf{Definición 1} (Sintaxis de PCTL). Sea $p\in[0,1]$, $k_i\in\mathbb{N}$ y $\bowtie\in\{<,>,\le,\ge\}$. La sintaxis de las fórmulas de PCTL sobre un set de preposiciones atómicas $\mathcal{PA}$ se define inductivamente como sigue:
 \begin{itemize}
-\item Like this,
-\item and like this.
-\end{itemize}
+    \item $true$ es una fórmula de estado,
+    \item Cada propisición atómica $a\in\mathcal{PA}$ es una fórmula de estado,
+    \item Si $\phi$ y $\psi$ son fórmulas de estado, también lo son $\neg\phi$ y $\phi\land\psi$,
+    \item Si $\phi$ y $\psi$ son fórmulas de estado, $\mathcal{X}\phi$, $\phi\mathcal{U}\psi$, y $\phi\mathcal{U}^{[k_1,k_2]}\psi$ son fórmulas de camino,
+    \item Si $\phi$ es una fórmula de camino, entonces $\mathcal{P}_{\bowtie p}(\pi)$ es una fórmula de estado.
+\end{itemize}\par
 
-\subsection{How to write Mathematics}
+Los operadores booleanos $\neg$ y $\land$ mantienen el significado usual. El operador $\mathcal{X}$ (next) es equivalente al de CTL, mientras que el operador $\phi \mathcal{U}^{[k_1,k_2]} \psi$ establece que “$\psi$ se satisface en uno de los primeros $k$ estados, donde $k \in [k_1, k_2]$ y en todos los estados anteriores $[0, k)$ se cumple $\phi$”, con $k_1 \geq 0$ y $k_2 < \infty$.
+Utilizamos una relación de satisfacción $\models_\mathcal{M}$ para definir la veracidad de las fórmulas PCTL en un DTMC $M = (S, \bar{s}, P, L)$. Intuitivamente, $s\models_\mathcal{M}\phi$ significa que la fórmula $\phi$ es verdadera en el estado $s$ en el DTMC $M$; lo mismo aplica para las fórmulas de caminos.\\
 
-\LaTeX{} is great at typesetting mathematics. Let $X_1, X_2, \ldots, X_n$ be a sequence of independent and identically distributed random variables with $\text{E}[X_i] = \mu$ and $\text{Var}[X_i] = \sigma^2 < \infty$, and let
-\[S_n = \frac{X_1 + X_2 + \cdots + X_n}{n}
-      = \frac{1}{n}\sum_{i}^{n} X_i\]
-denote their mean. Then as $n$ approaches infinity, the random variables $\sqrt{n}(S_n - \mu)$ converge in distribution to a normal $\mathcal{N}(0, \sigma^2)$.
+\textbf{Definición 2} (Semántica de PCTL). Sea $p \in [0,1]$, $k_i \in \mathbb{N}$, y $\bowtie \in \{<, >, \leq, \geq\}$. Sea $\pi[i] = s_i$ el $i$-ésimo estado a lo largo del camino $\pi$. La relación de satisfacción $\models_\mathcal{M}$, donde $s$ es un estado, $\pi$ un camino y $\mathcal{M} = (S, \bar{s}, P, L)$ una DTMC, se define de la siguiente forma:
+
+\[
+\begin{array}{ll}
+s \models_\mathcal{M} \mathit{true} & \text{para todos los estados} \\
+s \models_\mathcal{M} a & \text{ssi $a$ es una proposición atómica válida en $s$, $a \in Label(s)$} \\
+s \models_\mathcal{M} \neg \phi & \text{ssi } s \not\models_\mathcal{M} \phi \\
+s \models_\mathcal{M} \phi \land \psi & \text{ssi } s \models_\mathcal{M} \phi \text{ y } s \models_\mathcal{M} \psi \\
+s \models_\mathcal{M} \mathbb{P}_{\bowtie p}(\Psi) & \text{ssi } \Pr_s\{\pi \in Path^\mathcal{M}(s) \mid \pi \models_\mathcal{M} \Psi\} \bowtie p \\
+\pi \models_\mathcal{M} \mathsf{X} \phi & \text{ssi } \pi[1] \text{ está definida y } \pi[1] \models_\mathcal{M} \phi \\
+\pi \models_\mathcal{M} \phi \, \mathsf{U}^{[k_1,k_2]} \psi & \text{ssi } \exists k' \in [k_1,k_2] \text{ tal que } (\pi[k'] \models_\mathcal{M} \psi \land (\forall k'' \in [0,k']: \pi[k''] \models_\mathcal{M} \phi)) \\
+s \models_\mathcal{M} \mathcal{L}_{\bowtie p}(\phi) & \text{ssi } \lim_{k \to \infty} \Pr_s\{\pi \in Path^\mathcal{M}(s) \mid \pi[k] \models_\mathcal{M} \phi\} \bowtie p
+\end{array}
+\]
+
+Donde $\Pr_s\{\pi \in Path^\mathcal{M}(s) \mid \pi \models_\mathcal{M} \Psi\} \bowtie p$ significa que la medida de probabilidad de todos los caminos $\pi \in Path$ que comienzan en $s$ y satisfacen $\Psi$ debe cumplir la cota $\bowtie p$.
 
 
-\subsection{How to change the margins and paper size}
+\subsubsection{Lógica Estocástica Continua (CSL)}
 
-Usually the template you're using will have the page margins and paper size set correctly for that use-case. For example, if you're using a journal article template provided by the journal publisher, that template will be formatted according to their requirements. In these cases, it's best not to alter the margins directly.
+Fue introducida por Aziz et al. en \cite{ASSB96} y luego extendida por Baier et al. en \cite{BKH99} como una extensión de la lógica anterior con la capacidad de contar con un período variable de transición entre un estado y otro. Sus operadores son similares a los de PCTL pero sustituyen los valores discretos de tiempo por valores continuos.\\
 
-If however you're using a more general template, such as this one, and would like to alter the margins, a common way to do so is via the geometry package. You can find the geometry package loaded in the preamble at the top of this example file, and if you'd like to learn more about how to adjust the settings, please visit this help article on \href{https://www.overleaf.com/learn/latex/page_size_and_margins}{page size and margins}.
+\textbf{Definición 3} (Sintaxis de CSL). Sea $p\in[0,1]$, $I\subseteq\mathbb{R}_{\ge0}$ un intervalo no vacío y $\bowtie\in\{<,>,\le,\ge\}$. La sintaxis de las fórmulas de CSL sobre un set de preposiciones atómicas $\mathcal{PA}$ se define inductivamente como sigue:
+\begin{itemize}
+    \item $true$ es una fórmula de estado,
+    \item Cada propisición atómica $a\in\mathcal{PA}$ es una fórmula de estado,
+    \item Si $\phi$ y $\psi$ son fórmulas de estado, también lo son $\neg\phi$ y $\phi\land\psi$,
+    \item Si $\phi$ es una fórmula de estado, también lo es $\mathcal{S}_{\bowtie p}(\phi)$,
+    \item Si $\psi$ es una fórmula de camino, también lo es $\mathcal{P}_{\bowtie p}(\psi)$,
+    \item Si $\phi$ y $\psi$ son fórmulas de estado, $\mathcal{X}^I\phi$, $\phi\mathcal{U}^I\psi$, y $\phi\mathcal{U}^{[k_1,k_2]}\psi$ son fórmulas de camino.
+\end{itemize}\par
 
-\subsection{How to change the document language and spell check settings}
+Las fórmulas de estado no difieren de las utilizadas en PCTL, excepto por el operador de estado estable $\mathcal{S}_{\bowtie p}(\phi)$, que corresponde al operador de largo plazo $\mathcal{L}_{\bowtie p}(\phi)$. Este afirma que la probabilidad de estar en un estado que satisface $\phi$ a largo plazo cumple con la cota $\bowtie p$. La fórmula de camino $\mathsf{X}^I \phi$ afirma que se realiza una transición a un estado que satisface $\phi$ en algún punto de tiempo $t \in I$. La fórmula $\phi \, \mathsf{U}^I \psi$ afirma que $\psi$ se satisface en algún instante $t$, dentro del intervalo $I$, y que en todos los instantes anteriores $[0, t)$ se satisface $\phi$. El operador de ``hasta'' no acotado $\mathsf{U}$ es otra forma de expresar que $\phi \, \mathsf{U}^{[0,\infty)} \psi$. Usamos una relación de satisfacción $\models_\mathcal{M}$ para definir la verdad de las fórmulas CSL, para un estado $s$ y un camino $\pi$ en una CTMC $\mathcal{M} = (S, \bar{s}, R, L)$.\\
 
-Overleaf supports many different languages, including multiple different languages within one document. 
+\textbf{Definición 4} (Semántica de CSL). Sea $p \in [0,1]$, y $t \in \mathbb{R}$, y $\bowtie \in \{<, >, \leq, \geq\}$. Sea $\pi[i] = s_i$ el $i$-ésimo estado a lo largo del camino $\pi$. Sea $\delta(\pi, i) = t_i$ el tiempo pasado en el estado $s_i$, y sea $\pi@t$ el estado ocupado en el camino $\pi$ en el instante de tiempo $t$.
+La relación de satisfacción $\models_\mathcal{M}$, donde $s$ es un estado, $\pi$ un camino y $\mathcal{M}$ una CTMC, se define como:
 
-To configure the document language, simply edit the option provided to the babel package in the preamble at the top of this example project. To learn more about the different options, please visit this help article on \href{https://www.overleaf.com/learn/latex/International_language_support}{international language support}.
-
-To change the spell check language, simply open the Overleaf menu at the top left of the editor window, scroll down to the spell check setting, and adjust accordingly.
-
-\subsection{How to add Citations and a References List}
-
-You can simply upload a \verb|.bib| file containing your BibTeX entries, created with a tool such as JabRef. You can then cite entries from it, like this: \cite{greenwade93}. Just remember to specify a bibliography style, as well as the filename of the \verb|.bib|. You can find a \href{https://www.overleaf.com/help/97-how-to-include-a-bibliography-using-bibtex}{video tutorial here} to learn more about BibTeX.
-
-If you have an \href{https://www.overleaf.com/user/subscription/plans}{upgraded account}, you can also import your Mendeley or Zotero library directly as a \verb|.bib| file, via the upload menu in the file-tree.
-
-\subsection{Good luck!}
-
-We hope you find Overleaf useful, and do take a look at our \href{https://www.overleaf.com/learn}{help library} for more tutorials and user guides! Please also let us know if you have any feedback using the Contact Us link at the bottom of the Overleaf menu --- or use the contact form at \url{https://www.overleaf.com/contact}.
+\[
+\begin{array}{ll}
+s \models_\mathcal{M} \mathit{true} & \text{para todos los estados} \\
+s \models_\mathcal{M} a & \text{ssi $a$ es una proposición atómica válida en $s$, $a \in Label(s)$} \\
+s \models_\mathcal{M} \neg \phi & \text{ssi } s \not\models_\mathcal{M} \phi \\
+s \models_\mathcal{M} \phi \land \psi & \text{ssi } s \models_\mathcal{M} \phi \text{ y } s \models_\mathcal{M} \psi \\
+s \models_\mathcal{M} \mathcal{S}_{\bowtie p}(\phi) & \text{ssi } \lim_{t \to \infty} \Pr_s\{\pi \in Path^\mathcal{M}(s) \mid \pi@t \models_\mathcal{M} \phi \} \bowtie p \\
+s \models_\mathcal{M} \mathbb{P}_{\bowtie p}(\Psi) & \text{ssi } \Pr_s\{\pi \in Path^\mathcal{M}(s) \mid \pi \models_\mathcal{M} \Psi\} \bowtie p \\
+\pi \models_\mathcal{M} \mathsf{X}^I \phi & \text{ssi } \pi[1] \text{ está definida y } \pi[1] \models_\mathcal{M} \phi \text{ y } \delta(\pi, 0) \in I \\
+\pi \models_\mathcal{M} \phi \, \mathsf{U}^I \psi & \text{ssi } \exists t \in I. (\pi@t \models_\mathcal{M} \psi \land (\forall t' \in [0,t). \pi@t' \models_\mathcal{M} \phi))
+\end{array}
+\]
 
 \bibliographystyle{alpha}
 \bibliography{sample}
