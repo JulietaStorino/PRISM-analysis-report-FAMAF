@@ -1,28 +1,29 @@
-\documentclass{article}
-
-% Language setting
+\documentclass[runningheads]{llncs}
 \usepackage[spanish]{babel}
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
 \usepackage{amssymb}
 
-% Set page size and margins
-\usepackage[letterpaper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
-
-% Useful packages
-\usepackage{amsmath}
-\usepackage{graphicx}
-\usepackage[colorlinks=true, allcolors=blue]{hyperref}
-
-\title{\textbf{PRISM: Verificación Formal de Sistemas con Modelos Probabilísticos}}
-\author{Angeles Carrara, Julieta Paola Storino, Mateo Carranza Velez\\ \\
-\small{Facultad de Matemática, Astronomía, Física y Computación, Universidad Nacional de Córdoba.}\\
-\small{\{mail,julieta\_storino,angeles.carrara\}@mi.unc.edu.ar}\\
-}
-
-\date{}
-
 \begin{document}
+
+\title{PRISM: Verificación Formal de Sistemas con Modelos Probabilísticos}
+
+\author{
+    Angeles Carrara\and
+    Julieta Paola Storino\and
+    Mateo Carranza Velez}
+
+\authorrunning{Carrara, Storino, Carranza-Velez}
+
+\institute{
+    Facultad de Matemática, Astronomía, Física y Computación.\\
+    Universidad Nacional de Córdoba.
+    \email{\{mail,julieta\_storino,angeles.carrara\}@mi.unc.edu.ar}}
+
 \maketitle
+
 \begin{abstract}
 Este documento presenta una introducción a la herramienta PRISM\cite{KNP11}, un entorno para el modelado y análisis formal de sistemas con comportamientos aleatorios o probabilísticos, que permite la verificación rigurosa de propiedades cuantitativas y cualitativas sobre modelos como cadenas de Markov (discretas y continuas), procesos de decisión de Markov y autómatas probabilísticos. Se abordan los principales aspectos relacionados con su desarrollo y aplicación, incluyendo: el contexto de creación de la herramienta, sus objetivos fundamentales, una descripción de sus funcionalidades desde la perspectiva del usuario, los componentes técnicos que la sustentan, casos de estudio documentados —tanto exitosos como con limitaciones—, una comparación con otras herramientas similares en el ámbito de la verificación formal, y un análisis detallado de un caso de estudio seleccionado.
 \end{abstract}
@@ -131,7 +132,32 @@ s \models_\mathcal{M} \mathbb{P}_{\bowtie p}(\Psi) & \text{ssi } \Pr_s\{\pi \in 
 \end{array}
 \]
 
-\bibliographystyle{alpha}
-\bibliography{sample}
 
+\begin{thebibliography}{8}
+
+\bibitem{KNP11}
+Kwiatkowska, M., Norman, G., Parker, D.: PRISM 4.0: Verification of Probabilistic Real-time Systems. In: Gopalakrishnan, G., Qadeer, S. (eds.) CAV 2011. LNCS, vol. 6806, pp. 585--591. Springer, Heidelberg (2011)
+
+\bibitem{KNP02}
+Kwiatkowska, M., Norman, G., Parker, D.: PRISM: Probabilistic Symbolic Model Checker. In: Field, T., Harrison, P.G., Bradley, J.T., Harder, U. (eds.) TOOLS 2002. LNCS, vol. 2324, pp. 200--204. Springer, Heidelberg (2002)
+
+\bibitem{BK07}
+Baier, C., Katoen, J.-P.: Principles of Model Checking. MIT Press, Cambridge (2007)
+
+\bibitem{LT93}
+Leveson, N.G., Turner, C.S.: An Investigation of the Therac-25 Accidents. IEEE Computer \textbf{26}(7), 18--41 (1993)
+
+\bibitem{Lan96}
+Le Lann, G.: The Ariane 5 Flight 501 Failure -- A Case Study in System Engineering for Computing Systems. Rapport de recherche \textbf{3079} (1996)
+
+\bibitem{HH94}
+Hansson, H., Jonsson, B.: A Logic for Reasoning about Time and Probability. Formal Aspects of Computing \textbf{6}(5), 512--535 (1994)
+
+\bibitem{ASSB96}
+Aziz, A., Sanwal, K., Singhal, V., Brayton, R.: Verifying Continuous Time Markov Chains. In: CAV 1996. LNCS, vol. 1102, pp. 269--276. Springer, Heidelberg (1996)
+
+\bibitem{BKH99}
+Baier, C., Katoen, J.-P., Hermanns, H.: Approximate Symbolic Model Checking of Continuous-Time Markov Chains. In: CONCUR 1999. LNCS, vol. 1664, pp. 146--161. Springer, Heidelberg (1999)
+
+\end{thebibliography}
 \end{document}
