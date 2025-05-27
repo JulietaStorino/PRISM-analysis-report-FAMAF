@@ -84,6 +84,21 @@ La herramienta permite visualizar los modelos, mediante de la generación de arc
 
 PRISM permite también especifcar propiedades no probabilísticas, en CTL o LTL y es capaz de reportar contraejemplos cuando una propiedad no se cumple.
 
+\section{Caso de estudio: Cruzando el río probabilístico}
+
+Para ilustrar el funcionamiento de la herramienta, vamos a modelar una versión probabilística del problema de cruzar el río. [ref] Este es un problema clásico en la cultura popular. La formulación que proponemos es la siguiente:
+
+Un granjero quiere cruzar al otro lado del río, junto con un lobo, una oveja y una lechuga. Para hacerlo, cuenta con un bote con el cual puede cruzarlo con a lo sumo un objeto más. En cada momento, si hay $e$ objetos de ese lado del río, elije qué hacer con igual probabilidad entre las $e+1$ opciones, que son cruzar el río solo o elegir uno de los $e$ objetos y cruzar con él. Si mientras está cruzando quedan del mismo lado el lobo y la oveja o la oveja y la lechuga, con probabilidad $p$ alguien resulta comido (la oveja en el primer caso, la lechuga en el segundo, y si ocurren ambos a la vez, cualquiera de ellos con igual probabilidad). Calcular la probabilidad de que el granjero pueda llegar al otro lado con los tres objetos.
+
+Nuestro modelo de este problema en PRISM no fue incluído en el texto de este trabajo, pero puede encontrarse al pie de página. [poner] Para simplicar el modelado, usamos que en PRISM el no determinismo en una DTMC se traduce a una transición aleatoria con igual probabilidad entre todas las opciones posibles en ese momento. No incluiremos su grafo pues tiene $72$ estados y $124$ transiciones.
+
+En las formulaciones usuales de este problema se suele usar $p=1$, es decir, siempre que alguien pueda comer, lo va a hacer. En esta versión, la probabilidad de poder cruzar es de aproximadamente $0.62\%$. En el otro extremo, si $p=0$ entonces nadie resulta comido y por lo tanto la probabilidad es del $100\%$. En la figura 1 podemos ver cómo varía la probabilidad de cruzar en función de $p$, para los valores $p=0.1k$ con $k$ entero entre $0$ y $10$. %Todo: incluir figuara
+
+También usamos la herramienta para calcular cómo va incrementando la probabilidad de poder cruzar en función de la cantidad de pasos que realizamos. En la figura 2 pueden verse estas probabilidades para $p=\frac{1}{2}$ y con cantidades de pasos entre $0$ y $100$. Las mesetas que se forman debido a que solo cada $4$ pasos el granjero llega al lado derecho del río.
+
+Además, verificamos las siguientes propiedades 'En algún momento se comen a la oveja con probabilidad $1$' y 'En algún momento se comen a la oveja'. Observar que la primera es probabilística y la segunda no. Al verificarlas, la primera resulta verdadera pero la segunda resulta falsa. Esto es porque existe un camino infinito en el que no se comen a la oveja, pero este tiene probabilidad $0$ de ocurrir. PRISM no reporta contraejemplos en estos casos infinitos. Si en cambio, verificamos que 'Es posible que crucen todos al otro lado' (que tampoco es probabilística), esto resulta verdadero y PRISM nos da el testigo de cómo hacerlo mendiante el simulador.
+
+Usando el sistema de recompensas de PRISM, calculamos el valor esperado de la cantidad de cruces que ocurren hasta que se comen a alguien, y hasta que se coman a la oveja. Para $p=\frac{1}{2}$ estos valores dieron aproximadamente $6.14$ y $14.52$. La cantidad esperada de cruces que ocurren hasta que resolvemos el problema o es imposible de resolver (porque se comieron a alguien) es de $5.55$ cruces.
 
 \begin{thebibliography}{8}
 
