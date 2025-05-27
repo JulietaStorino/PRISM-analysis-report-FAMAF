@@ -34,106 +34,39 @@ Los sistemas informáticos se encuentran cada vez más integrados en múltiples 
 
 \section{Antecedentes}
 
-\subsection{Verificación de modelos}
-
-Existen diversas técnicas para verificar la corrección funcional de un sistema, entre las que se incluyen la demostración de teoremas, la simulación, la prueba (testing), y la verificación de modelos (model checking). En nuestro informe, nos enfocamos en esta última, una técnica que consiste en explorar exhaustivamente todos los estados posibles del sistema mediante un enfoque de fuerza bruta, con el objetivo de comprobar que un modelo dado cumple efectivamente con una propiedad específica \cite{BK07}.
-
-Este enfoque tradicional de verificación de modelos busca proporcionar una garantía completamente precisa sobre el cumplimiento o no de una propiedad en el modelo analizado. Sin embargo, en muchos escenarios no es posible ni deseable ofrecer garantías absolutas. Por ejemplo, en protocolos de comunicación o redes inalámbricas, es necesario considerar una cierta probabilidad de pérdida de mensajes.
-
-\subsection{Verificación probabilística de modelos}
+Existen diversas técnicas para verificar la corrección funcional de un sistema, entre las que se incluyen la demostración de teoremas, la simulación, la prueba (testing), y la verificación de modelos (model checking). En nuestro informe, nos enfocamos en esta última, una técnica que consiste en explorar exhaustivamente todos los estados posibles del sistema mediante un enfoque de fuerza bruta, con el objetivo de comprobar que un modelo dado cumple efectivamente con una propiedad específica \cite{BK07}. Este enfoque tradicional de verificación de modelos busca proporcionar una garantía completamente precisa sobre el cumplimiento —o no— de una propiedad en el modelo analizado. Sin embargo, en muchos escenarios no es posible ni deseable ofrecer garantías absolutas. Por ejemplo, en protocolos de comunicación o redes inalámbricas, es necesario considerar una cierta probabilidad de pérdida de mensajes.
 
 La verificación de modelos probabilísticos (Probabilistic Model Checking) es una extensión de la verificación de modelos clásica que nos permite establecer la validez de una propiedad dentro de un modelo dado. Es una técnica automática de verificación formal diseñada para analizar sistemas que presentan comportamientos estocásticos.
 A diferencia de la verificación tradicional, cuyo resultado es estrictamente booleano (la propiedad se cumple o no), la verificación probabilística permite obtener valores cuantitativos, como la probabilidad de alcanzar un estado crítico o el tiempo esperado hasta que ocurra un evento. Esta capacidad resulta especialmente útil en el análisis de sistemas que interactúan con entornos inciertos, como redes de comunicación, sistemas embebidos y protocolos distribuidos.
 
-\subsection{Modelos probabilísticos}
 Para comprobar el modelo de un sistema que muestra un comportamiento estocástico, primero necesitaremos construir un modelo probabilístico formal de ese sistema. Existen varias representaciones de modelos probabilísticos de uso común para sistemas estocásticos, pero nos vamos a enfocar en los principales modelos soportados por la herramienta a desarrollar.
 
-\subsubsection{Cadenas de Markov de Tiempo Discreto (DTMC)}
+\textbf{Cadenas de Markov de Tiempo Discreto (DTMC)}: Son modelos en los que el comportamiento del sistema evoluciona en pasos discretos, y en cada paso existe una distribución de probabilidad sobre los posibles estados siguientes. Se representan como grafos dirigidos etiquetados con probabilidades de transición. Para cada estado, las probabilidades de transición deben sumar $1$\cite{KNP02}. Estos modelos son apropiados para sistemas donde el tiempo se modela como secuencias de eventos discretos y completamente probabilísticos, como protocolos de comunicación simples o sistemas sin decisiones controlables.
 
-Las DTMC son modelos en los que el comportamiento del sistema evoluciona en pasos discretos, y en cada paso existe una distribución de probabilidad sobre los posibles estados siguientes. Se representan como grafos dirigidos etiquetados con probabilidades de transición. La probabilidad de realizar una transición del estado $s_0$ a un estado $s_1$ se denota como $\pi(s_0, s_1)$, y para cada estado las probabilidades de transición deben sumar $1$\cite{KNP02}. Estos modelos son apropiados para sistemas donde el tiempo se modela como secuencias de eventos discretos y completamente probabilísticos, como protocolos de comunicación simples o sistemas sin decisiones controlables.
+\textbf{Procesos de Decisión de Markov (MDP)}: Extienden DTMC introduciendo no determinismo, lo que permite modelar elecciones o decisiones controlables dentro del sistema. En cada estado, el sistema puede tener varias acciones posibles, y cada acción induce una distribución de probabilidad sobre los estados sucesores. Este modelo es útil para representar la interacción entre el entorno (probabilístico) y un controlador (no determinista). Permiten modelar, por ejemplo, sistemas con múltiples componentes que operan en paralelo de manera asincrónica, donde ciertas decisiones dependen del contexto de ejecución.
 
-\subsubsection{Procesos de Decisión de Markov (MDP)}
+\textbf{Cadenas de Markov de Tiempo Continuo (CTMC)}: Las transiciones entre estados ocurren después de un tiempo continuo aleatorio, no en pasos discretos. Cada transición está asociada con una tasa que determina la probabilidad de moverse de un estado a otro en un cierto tiempo, siguiendo una distribución exponencial. Este tipo de modelos es adecuado para analizar sistemas donde los eventos ocurren de forma continua en el tiempo, como redes de colas o sistemas biológicos.
 
-Los MDP extienden las DTMC introduciendo no determinismo, lo que permite modelar elecciones o decisiones controlables dentro del sistema. En cada estado, el sistema puede tener varias acciones posibles, y cada acción induce una distribución de probabilidad sobre los estados sucesores. Este modelo es útil para representar la interacción entre el entorno (probabilístico) y un controlador (no determinista). Permiten modelar, por ejemplo, sistemas con múltiples componentes que operan en paralelo de manera asincrónica, donde ciertas decisiones dependen del contexto de ejecución.
+\textbf{Autómatas Temporizados Probabilísticos (PTAs)}: Combinan aspectos de los MDP (no determinismo y probabilidad) con restricciones temporales explícitas sobre el comportamiento. Se modelan con relojes (clocks) que evolucionan en tiempo real, y las transiciones pueden depender de condiciones temporales (por ejemplo, \textit{esperar al menos 5 segundos antes de enviar un mensaje}). Esto permite representar sistemas donde el tiempo es un recurso fundamental y las decisiones deben tomarse en ventanas temporales específicas, como en protocolos de red con tiempos límite o sistemas embebidos con control en tiempo real.
 
-\subsubsection{Cadenas de Markov de Tiempo Continuo (CTMC)}
+Una vez que el sistema está representado por un modelo, queremos comprobar si este cumple una especificación formal. Para ello, PRISM permite expresar propiedades utilizando diversos lenguajes de lógica temporal, pero nuevamente nos enfocaremos en el más representativo: la Lógica de Árbol Computacional Probabilística (PCTL).
 
-En las CTMC, las transiciones entre estados no ocurren en pasos discretos sino después de un tiempo continuo aleatorio. Cada transición está asociada con una tasa $\rho(s_0, s_1)$ que determina la probabilidad de moverse del estado $s_0$ al $s_1$ en un cierto tiempo $t$, siguiendo una distribución exponencial. La probabilidad de que esa transición ocurra dentro del intervalo de tiempo $t$ es $1 - e^{-\rho(s_0,s_1)\cdot t}$. Este tipo de modelos es adecuado para analizar sistemas donde los eventos ocurren de forma continua en el tiempo, como redes de colas o sistemas biológicos.
+\textbf{Lógica de Árbol Computacional Probabilística (PCTL)}: Es introducida por Hansson y Jonsson en \cite{HH94} como una extensión probabilística de la lógica temporal CTL. Su característica distintiva es el uso del operador probabilístico $P$, que generaliza los cuantificadores $\forall$ y $\exists$ de CTL para incorporar condiciones sobre la probabilidad de ocurrencia de ciertos eventos en un sistema estocástico. Por ejemplo, la fórmula
+\[a\to P_{\le p}[F^{\le s} b]\]
+se interpreta como "si $a$ ocurre, entonces la probabilidad de que $b$ ocurra en los próximos $s$ pasos es menor o igual a $p$". La sintaxis de PCTL se divide en fórmulas de estado y fórmulas de camino, definidas de la siguiente manera:
 
-\subsubsection{Autómatas Temporizados Probabilísticos (PTAs)}
-
-Los PTAs combinan aspectos de los MDP (no determinismo y probabilidad) con restricciones temporales explícitas sobre el comportamiento. Se modelan con relojes (clocks) que evolucionan en tiempo real, y las transiciones pueden depender de condiciones temporales (por ejemplo, \textit{esperar al menos 5 segundos antes de enviar un mensaje}). Los PTAs permiten representar sistemas donde el tiempo es un recurso fundamental y las decisiones deben tomarse en ventanas temporales específicas, como en protocolos de red con tiempos límite o sistemas embebidos con control en tiempo real.
-
-\subsection{Lógica para verificar modelos probabilísticos}
-
-Una vez que el sistema está representado por un modelo, queremos comprobar si este cumple una especificación formal. Para ello es necesario definir el lenguaje que utilizaremos para dar la especificación y construir las propiedades que pretendamos verificar. Para ello utilizaremos lógicas temporales.
-
-\subsubsection{Lógica de Árbol Computacional Probabilística (PCTL)}
-
-Fue introducida por Hansson y Jonsson en \cite{HH94} como una extensión de la lógica temporal CTL con tiempos discretos y probabilidades. \par
-
-\textbf{Definición 1} (Sintaxis de PCTL). Sea $p\in[0,1]$, $k_i\in\mathbb{N}$ y $\bowtie\in\{<,>,\le,\ge\}$. La sintaxis de las fórmulas de PCTL sobre un set de preposiciones atómicas $\mathcal{PA}$ se define inductivamente como sigue:
 \begin{itemize}
-    \item $true$ es una fórmula de estado,
-    \item Cada propisición atómica $a\in\mathcal{PA}$ es una fórmula de estado,
-    \item Si $\phi$ y $\psi$ son fórmulas de estado, también lo son $\neg\phi$ y $\phi\land\psi$,
-    \item Si $\phi$ y $\psi$ son fórmulas de estado, $\mathcal{X}\phi$, $\phi\mathcal{U}\psi$, y $\phi\mathcal{U}^{[k_1,k_2]}\psi$ son fórmulas de camino,
-    \item Si $\phi$ es una fórmula de camino, entonces $\mathcal{P}_{\bowtie p}(\pi)$ es una fórmula de estado.
-\end{itemize}\par
-
-Los operadores booleanos $\neg$ y $\land$ mantienen el significado usual. El operador $\mathcal{X}$ (next) es equivalente al de CTL, mientras que el operador $\phi \mathcal{U}^{[k_1,k_2]} \psi$ establece que “$\psi$ se satisface en uno de los primeros $k$ estados, donde $k \in [k_1, k_2]$ y en todos los estados anteriores $[0, k)$ se cumple $\phi$”, con $k_1 \geq 0$ y $k_2 < \infty$.
-Utilizamos una relación de satisfacción $\models_\mathcal{M}$ para definir la veracidad de las fórmulas PCTL en un DTMC $M = (S, \bar{s}, P, L)$. Intuitivamente, $s\models_\mathcal{M}\phi$ significa que la fórmula $\phi$ es verdadera en el estado $s$ en el DTMC $M$; lo mismo aplica para las fórmulas de caminos.\\
-
-\textbf{Definición 2} (Semántica de PCTL). Sea $p \in [0,1]$, $k_i \in \mathbb{N}$, y $\bowtie \in \{<, >, \leq, \geq\}$. Sea $\pi[i] = s_i$ el $i$-ésimo estado a lo largo del camino $\pi$. La relación de satisfacción $\models_\mathcal{M}$, donde $s$ es un estado, $\pi$ un camino y $\mathcal{M} = (S, \bar{s}, P, L)$ una DTMC, se define de la siguiente forma:
-
-\[
-\begin{array}{ll}
-s \models_\mathcal{M} \mathit{true} & \text{para todos los estados} \\
-s \models_\mathcal{M} a & \text{ssi $a$ es una proposición atómica válida en $s$, $a \in Label(s)$} \\
-s \models_\mathcal{M} \neg \phi & \text{ssi } s \not\models_\mathcal{M} \phi \\
-s \models_\mathcal{M} \phi \land \psi & \text{ssi } s \models_\mathcal{M} \phi \text{ y } s \models_\mathcal{M} \psi \\
-s \models_\mathcal{M} \mathbb{P}_{\bowtie p}(\Psi) & \text{ssi } \Pr_s\{\pi \in Path^\mathcal{M}(s) \mid \pi \models_\mathcal{M} \Psi\} \bowtie p \\
-\pi \models_\mathcal{M} \mathsf{X} \phi & \text{ssi } \pi[1] \text{ está definida y } \pi[1] \models_\mathcal{M} \phi \\
-\pi \models_\mathcal{M} \phi \, \mathsf{U}^{[k_1,k_2]} \psi & \text{ssi } \exists k' \in [k_1,k_2] \text{ tal que } (\pi[k'] \models_\mathcal{M} \psi \land (\forall k'' \in [0,k']: \pi[k''] \models_\mathcal{M} \phi)) \\
-s \models_\mathcal{M} \mathcal{L}_{\bowtie p}(\phi) & \text{ssi } \lim_{k \to \infty} \Pr_s\{\pi \in Path^\mathcal{M}(s) \mid \pi[k] \models_\mathcal{M} \phi\} \bowtie p
-\end{array}
-\]
-
-Donde $\Pr_s\{\pi \in Path^\mathcal{M}(s) \mid \pi \models_\mathcal{M} \Psi\} \bowtie p$ significa que la medida de probabilidad de todos los caminos $\pi \in Path$ que comienzan en $s$ y satisfacen $\Psi$ debe cumplir la cota $\bowtie p$.
-
-
-\subsubsection{Lógica Estocástica Continua (CSL)}
-
-Fue introducida por Aziz et al. en \cite{ASSB96} y luego extendida por Baier et al. en \cite{BKH99} como una extensión de la lógica anterior con la capacidad de contar con un período variable de transición entre un estado y otro. Sus operadores son similares a los de PCTL pero sustituyen los valores discretos de tiempo por valores continuos.\\
-
-\textbf{Definición 3} (Sintaxis de CSL). Sea $p\in[0,1]$, $I\subseteq\mathbb{R}_{\ge0}$ un intervalo no vacío y $\bowtie\in\{<,>,\le,\ge\}$. La sintaxis de las fórmulas de CSL sobre un set de preposiciones atómicas $\mathcal{PA}$ se define inductivamente como sigue:
+    \item \textit{Fórmulas de estado}: \( \phi ::= \text{true} \mid a \mid \phi \land \phi \mid \neg \phi \mid P_{\sim p}[\psi]\)
+    \item \textit{Fórmulas de camino}: \(\psi ::= X\ \phi \mid \phi \ U^{\leq k} \psi \mid \phi \ U \phi \mid F\ \phi \mid G\ \phi\)
+\end{itemize}
+Donde:
 \begin{itemize}
-    \item $true$ es una fórmula de estado,
-    \item Cada propisición atómica $a\in\mathcal{PA}$ es una fórmula de estado,
-    \item Si $\phi$ y $\psi$ son fórmulas de estado, también lo son $\neg\phi$ y $\phi\land\psi$,
-    \item Si $\phi$ es una fórmula de estado, también lo es $\mathcal{S}_{\bowtie p}(\phi)$,
-    \item Si $\psi$ es una fórmula de camino, también lo es $\mathcal{P}_{\bowtie p}(\psi)$,
-    \item Si $\phi$ y $\psi$ son fórmulas de estado, $\mathcal{X}^I\phi$, $\phi\mathcal{U}^I\psi$, y $\phi\mathcal{U}^{[k_1,k_2]}\psi$ son fórmulas de camino.
-\end{itemize}\par
-
-Las fórmulas de estado no difieren de las utilizadas en PCTL, excepto por el operador de estado estable $\mathcal{S}_{\bowtie p}(\phi)$, que corresponde al operador de largo plazo $\mathcal{L}_{\bowtie p}(\phi)$. Este afirma que la probabilidad de estar en un estado que satisface $\phi$ a largo plazo cumple con la cota $\bowtie p$. La fórmula de camino $\mathsf{X}^I \phi$ afirma que se realiza una transición a un estado que satisface $\phi$ en algún punto de tiempo $t \in I$. La fórmula $\phi \, \mathsf{U}^I \psi$ afirma que $\psi$ se satisface en algún instante $t$, dentro del intervalo $I$, y que en todos los instantes anteriores $[0, t)$ se satisface $\phi$. El operador de ``hasta'' no acotado $\mathsf{U}$ es otra forma de expresar que $\phi \, \mathsf{U}^{[0,\infty)} \psi$. Usamos una relación de satisfacción $\models_\mathcal{M}$ para definir la verdad de las fórmulas CSL, para un estado $s$ y un camino $\pi$ en una CTMC $\mathcal{M} = (S, \bar{s}, R, L)$.\\
-
-\textbf{Definición 4} (Semántica de CSL). Sea $p \in [0,1]$, y $t \in \mathbb{R}$, y $\bowtie \in \{<, >, \leq, \geq\}$. Sea $\pi[i] = s_i$ el $i$-ésimo estado a lo largo del camino $\pi$. Sea $\delta(\pi, i) = t_i$ el tiempo pasado en el estado $s_i$, y sea $\pi@t$ el estado ocupado en el camino $\pi$ en el instante de tiempo $t$.
-La relación de satisfacción $\models_\mathcal{M}$, donde $s$ es un estado, $\pi$ un camino y $\mathcal{M}$ una CTMC, se define como:
-
-\[
-\begin{array}{ll}
-s \models_\mathcal{M} \mathit{true} & \text{para todos los estados} \\
-s \models_\mathcal{M} a & \text{ssi $a$ es una proposición atómica válida en $s$, $a \in Label(s)$} \\
-s \models_\mathcal{M} \neg \phi & \text{ssi } s \not\models_\mathcal{M} \phi \\
-s \models_\mathcal{M} \phi \land \psi & \text{ssi } s \models_\mathcal{M} \phi \text{ y } s \models_\mathcal{M} \psi \\
-s \models_\mathcal{M} \mathcal{S}_{\bowtie p}(\phi) & \text{ssi } \lim_{t \to \infty} \Pr_s\{\pi \in Path^\mathcal{M}(s) \mid \pi@t \models_\mathcal{M} \phi \} \bowtie p \\
-s \models_\mathcal{M} \mathbb{P}_{\bowtie p}(\Psi) & \text{ssi } \Pr_s\{\pi \in Path^\mathcal{M}(s) \mid \pi \models_\mathcal{M} \Psi\} \bowtie p \\
-\pi \models_\mathcal{M} \mathsf{X}^I \phi & \text{ssi } \pi[1] \text{ está definida y } \pi[1] \models_\mathcal{M} \phi \text{ y } \delta(\pi, 0) \in I \\
-\pi \models_\mathcal{M} \phi \, \mathsf{U}^I \psi & \text{ssi } \exists t \in I. (\pi@t \models_\mathcal{M} \psi \land (\forall t' \in [0,t). \pi@t' \models_\mathcal{M} \phi))
-\end{array}
-\]
-
+    \item\(a\) es una proposición atómica,
+    \item\(p \in [0,1]\) es un umbral de probabilidad,
+    \item\(\sim \in \{<, >, \leq, \geq\}\) es un operador de comparación,
+    \item\(k \in \mathbb{N}\) indica una cota temporal (en pasos discretos).
+    \item \(X=next\), \(F=future\), \(G=globally\), \(U=until\).
+\end{itemize}
 
 \section{Descripción de la herramienta del lado del usuario}
 
@@ -171,12 +104,6 @@ Le Lann, G.: The Ariane 5 Flight 501 Failure -- A Case Study in System Engineeri
 
 \bibitem{HH94}
 Hansson, H., Jonsson, B.: A Logic for Reasoning about Time and Probability. Formal Aspects of Computing \textbf{6}(5), 512--535 (1994)
-
-\bibitem{ASSB96}
-Aziz, A., Sanwal, K., Singhal, V., Brayton, R.: Verifying Continuous Time Markov Chains. In: CAV 1996. LNCS, vol. 1102, pp. 269--276. Springer, Heidelberg (1996)
-
-\bibitem{BKH99}
-Baier, C., Katoen, J.-P., Hermanns, H.: Approximate Symbolic Model Checking of Continuous-Time Markov Chains. In: CONCUR 1999. LNCS, vol. 1664, pp. 146--161. Springer, Heidelberg (1999)
 
 \end{thebibliography}
 \end{document}
