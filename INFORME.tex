@@ -20,7 +20,7 @@
 \institute{
     Facultad de Matemática, Astronomía, Física y Computación.\\
     Universidad Nacional de Córdoba.
-    \email{\{mail,julieta\_storino,angeles.carrara\}@mi.unc.edu.ar}}
+    \email{\{mateocvelez,julieta\_storino,angeles.carrara\}@mi.unc.edu.ar}}
 
 \maketitle
 
@@ -31,6 +31,8 @@ Este documento presenta una introducción a la herramienta PRISM\cite{KNP11}, un
 \section{Introducción}
 
 Los sistemas informáticos se encuentran cada vez más integrados en múltiples áreas del conocimiento, enfrentando riesgos cada vez más críticos y de mayor impacto. Estos riesgos abarcan desde errores que pueden poner en peligro vidas humanas —como sobredosis de radiación provocado por condiciones de carrera en sistemas médicos \cite{LT93}—, hasta pérdidas económicas multimillonarias —como autodestrucción en cohetes espaciales provocado por conversión incorrecta de punto flotante a entero en sistemas de referencia inercial \cite{Lan96}—. Frente a esta realidad, se vuelve esencial garantizar sistemas más robustos, confiables y con una tolerancia al fallo mínima. Para ello, es necesario recurrir a modelos formales que permitan describir con precisión las partes relevantes del sistema, conservando un nivel de abstracción que facilite su análisis y verificación.
+
+\section{Antecedentes}
 
 \subsection{Verificación de modelos}
 
@@ -131,6 +133,23 @@ s \models_\mathcal{M} \mathbb{P}_{\bowtie p}(\Psi) & \text{ssi } \Pr_s\{\pi \in 
 \pi \models_\mathcal{M} \phi \, \mathsf{U}^I \psi & \text{ssi } \exists t \in I. (\pi@t \models_\mathcal{M} \psi \land (\forall t' \in [0,t). \pi@t' \models_\mathcal{M} \phi))
 \end{array}
 \]
+
+
+\section{Descripción de la herramienta del lado del usuario}
+
+Prism es una herramienta que cuenta con interfaz gráfica, pero que también puede usarse sobre línea de comando. La interfaz gráfica está compuesta por cuatro pestañas cada una con una función diferente. Estas son 'Model', 'Properties', 'Simulator' y 'Log'.
+
+En la pestaña 'Model' es donde se especifica el modelo, en el lenguaje PRISM. En la primera línea debemos indicar el modelo probabilístico que vamos a utilizar. Este puede ser 'dtmc', 'ctmc', 'mdp', 'pta', 'pomdp' o 'popta'. Un modelo (no confundir con los modelos nombrados recién) en Prism está formado por uno o más módulos. Cada módulo contiene variables, que describen el estado del módulo. Dentro de cada módulo, se describen sus transiciones, que dependen del estado actual del módulo, y posiblemente de otros módulos. En DTMC o MDP, cada transición describe la probabilidad de de pasar de un estado a otro. En CTMC, hay que especificar tasas en lugar de probabilidades. También cuenta con un sistema de costos y recompensas.
+Para una descripción más detallada del lenguaje, leer la documentacón [TODO: poner ref]
+
+En la pestaña 'Properties' es donde se especifican las propiedades que que queremos verificar. Estas deben escribirse en el lenguaje de especificación de propiedades PRISM, que soporta varias lógicas temporales probabilísticas, tales como PCTL, CSL, LTL probabilístico y PCTL*. Estas propiedades pueden ser de tipos. En las del primer tipo, le preguntamos al modelo si cierta propiedad es cierta o no. Por ejemplo, que la probabilidad de llegar a cierto estado es mayor o igual a 0.5. En las del segundo tipo, le pedimos al modelo que calcule algún valor. Por ejemplo, la probabilidad de llegar a cierto estado o tiempo esperado hasta que ocurra algo. Para calcular estos valores esperados se usan los costos y recompensas.
+Para una descripción más detallada del lenguaje, leer la documentacón [TODO: poner ref]
+
+En la pestaña 'Simulator' podemos realizar simulaciones del modelo. En estas simulaciones, podemos decirle a la herramienta que haga una cantidad específica de pasos aleatoriamente o podemos elegir nosotros manualmente las transiciones. Cuenta con una tabla que nos permite ver los valores de las variables en cada paso. También se pueden generar gráficos de estas simulaciones.
+
+La herramienta permite visualizar los modelos, mediante de la generación de archivos .dot de los grafos asociados a los modelos.
+
+PRISM permite también especifcar propiedades no probabilísticas, en CTL o LTL y es capaz de reportar contraejemplos cuando una propiedad no se cumple.
 
 
 \begin{thebibliography}{8}
