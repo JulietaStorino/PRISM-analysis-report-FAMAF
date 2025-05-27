@@ -1,0 +1,27 @@
+// Probabilidad de que puedan cruzar en algún momento.
+P=? [ F granjero=2&lechuga=2&oveja=2&lobo=2 ]
+
+// Probabilidad de que lleguen al otro lado en 20 pasos.
+P=? [ F<=20 granjero=2&lechuga=2&oveja=2&lobo=2 ]
+
+// Probabilidad de que se coman la lechuga.
+P=? [ F lechuga=0 ]
+
+// Cantidad esperada de cruces hasta que se coman a alguien.
+R=? [ F (lechuga=0|oveja=0) ]
+
+// Cantidad esperada de cruces hasta que se coman a la oveja.
+R=? [ F (oveja=0) ]
+
+// Probabilidad de que se coman a alguien en 20 pasos.
+P=? [ F<=20 oveja=0|lechuga=0 ]
+
+// Se comen a la oveja con probabilidad 1?
+P>=1 [ F oveja=0 ]
+
+// Siempre se comen a la oveja.
+A [ F oveja=0 ]
+
+// Es posible que crucen en algún momento
+E [ F granjero=2&lechuga=2&oveja=2&lobo=2 ]
+
