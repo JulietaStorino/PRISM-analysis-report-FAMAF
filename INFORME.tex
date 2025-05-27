@@ -47,26 +47,26 @@ Para comprobar el modelo de un sistema que muestra un comportamiento estocástic
 
 \textbf{Cadenas de Markov de Tiempo Continuo (CTMC)}: Las transiciones entre estados ocurren después de un tiempo continuo aleatorio, no en pasos discretos. Cada transición está asociada con una tasa que determina la probabilidad de moverse de un estado a otro en un cierto tiempo, siguiendo una distribución exponencial. Este tipo de modelos es adecuado para analizar sistemas donde los eventos ocurren de forma continua en el tiempo, como redes de colas o sistemas biológicos.
 
-\textbf{Autómatas Temporizados Probabilísticos (PTAs)}: Combinan aspectos de los MDP (no determinismo y probabilidad) con restricciones temporales explícitas sobre el comportamiento. Se modelan con relojes (clocks) que evolucionan en tiempo real, y las transiciones pueden depender de condiciones temporales (por ejemplo, \textit{esperar al menos 5 segundos antes de enviar un mensaje}). Esto permite representar sistemas donde el tiempo es un recurso fundamental y las decisiones deben tomarse en ventanas temporales específicas, como en protocolos de red con tiempos límite o sistemas embebidos con control en tiempo real.
-
-Una vez que el sistema está representado por un modelo, queremos comprobar si este cumple una especificación formal. Para ello, PRISM permite expresar propiedades utilizando diversos lenguajes de lógica temporal, pero nuevamente nos enfocaremos en el más representativo: la Lógica de Árbol Computacional Probabilística (PCTL).
+Una vez que el sistema está representado por un modelo, queremos comprobar si este cumple una especificación formal. Para ello, se pueden utilizar diversos lenguajes de lógica temporal, pero nuevamente nos enfocaremos en los más relevantes y representativos en el contexto de la herramienta que se pretende construir.
 
 \textbf{Lógica de Árbol Computacional Probabilística (PCTL)}: Es introducida por Hansson y Jonsson en \cite{HH94} como una extensión probabilística de la lógica temporal CTL. Su característica distintiva es el uso del operador probabilístico $P$, que generaliza los cuantificadores $\forall$ y $\exists$ de CTL para incorporar condiciones sobre la probabilidad de ocurrencia de ciertos eventos en un sistema estocástico. Por ejemplo, la fórmula
-\[a\to P_{\le p}[F^{\le s} b]\]
-se interpreta como "si $a$ ocurre, entonces la probabilidad de que $b$ ocurra en los próximos $s$ pasos es menor o igual a $p$". La sintaxis de PCTL se divide en fórmulas de estado y fórmulas de camino, definidas de la siguiente manera:
+\[a\to P_{\sim p}[F^{\le s} b]\]
+se interpreta como "si $a$ ocurre, entonces la probabilidad de que $b$ ocurra en los próximos $s$ pasos satisface la relación $\sim p$". La sintaxis de PCTL se divide en fórmulas de estado y fórmulas de camino, definidas de la siguiente manera:
 
 \begin{itemize}
     \item \textit{Fórmulas de estado}: \( \phi ::= \text{true} \mid a \mid \phi \land \phi \mid \neg \phi \mid P_{\sim p}[\psi]\)
-    \item \textit{Fórmulas de camino}: \(\psi ::= X\ \phi \mid \phi \ U^{\leq k} \psi \mid \phi \ U \phi \mid F\ \phi \mid G\ \phi\)
+    \item \textit{Fórmulas de camino}: \(\psi ::= X\ \phi \mid \phi \ U^{[k_1,\ k_2]} \psi \mid \phi \ U \phi \mid F\ \phi \mid G\ \phi\)
 \end{itemize}
 Donde:
 \begin{itemize}
     \item\(a\) es una proposición atómica,
     \item\(p \in [0,1]\) es un umbral de probabilidad,
     \item\(\sim \in \{<, >, \leq, \geq\}\) es un operador de comparación,
-    \item\(k \in \mathbb{N}\) indica una cota temporal (en pasos discretos).
+    \item\(k_1,k_2 \in \mathbb{N}\) indica una cota temporal (en pasos discretos).
     \item \(X=next\), \(F=future\), \(G=globally\), \(U=until\).
 \end{itemize}
+
+\textbf{Lógica Estocástica Continua (CSL)}: Es introducida por Aziz et al. en \cite{ASSB96} y luego extendida por Baier et al. en \cite{BKH99} como una extensión de la lógica anterior con la capacidad de contar con un período variable de transición entre un estado y otro. Sus operadores son similares a los de PCTL pero sustituyen los valores discretos de tiempo por valores continuos. CSL incorpora un operador de estado estacionario, denotado por $S_{\sim p}[\phi]$, que permite razonar sobre el comportamiento a largo plazo del sistema. Esta expresión indica que la probabilidad en estado estacionario de que la fórmula $\phi$ sea verdadera satisface la relación $\sim p$.
 
 \section{Descripción de la herramienta del lado del usuario}
 
@@ -104,6 +104,12 @@ Le Lann, G.: The Ariane 5 Flight 501 Failure -- A Case Study in System Engineeri
 
 \bibitem{HH94}
 Hansson, H., Jonsson, B.: A Logic for Reasoning about Time and Probability. Formal Aspects of Computing \textbf{6}(5), 512--535 (1994)
+
+\bibitem{ASSB96}
+Aziz, A., Sanwal, K., Singhal, V., Brayton, R.: Verifying Continuous Time Markov Chains. In: CAV 1996. LNCS, vol. 1102, pp. 269--276. Springer, Heidelberg (1996)
+
+\bibitem{BKH99}
+Baier, C., Katoen, J.-P., Hermanns, H.: Approximate Symbolic Model Checking of Continuous-Time Markov Chains. In: CONCUR 1999. LNCS, vol. 1664, pp. 146--161. Springer, Heidelberg (1999)
 
 \end{thebibliography}
 \end{document}
