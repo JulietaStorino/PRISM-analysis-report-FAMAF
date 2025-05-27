@@ -1,0 +1,24 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.linspace(0,1,11)
+
+# Probabilidades con p = 0.0, 0.1, 0.2, ..., 1.0
+y = [1,
+0.533170613424,
+0.326201720076,
+0.212676697189,
+0.14297084809,
+0.09712282058,
+0.0655736681801,
+0.0431859121938,
+0.0269617401007,
+0.015040554371,
+0.00621117059057,
+]
+
+plt.plot(x,y)
+# plt.title("Probabilidad de cruzar el río según la probabilidad de comer")
+plt.xlabel("Probabilidad de comer")
+plt.ylabel("Probabilidad de cruzar")
+plt.show()

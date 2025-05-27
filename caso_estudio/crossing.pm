@@ -1,12 +1,13 @@
 dtmc
 
 // probabilidades de que se coman
-const double p_lobo_come = 0.5;
-const double p_oveja_come = 0.5;
+const double p = 0.5;
+const double p_lobo_come = p;
+const double p_oveja_come = p;
 
 module river
 	// objetos
-	// 0 -> muerto, 1 -> izquierdo, 2-> derecho
+	// 0 -> muerto, 1 -> izquierdo, 2 -> derecho
 	lechuga:  [0..2] init 1;
 	oveja: 	  [0..2] init 1;
 	lobo:     [0..2] init 1;
@@ -28,13 +29,9 @@ module river
 	[] viajando = true & oveja = lechuga & oveja != granjero -> p_oveja_come:(lechuga' = 0) & (viajando' = false) + (1-p_oveja_come):(viajando' = false);
 
 	// acá también hay no-determinismo 
-	// solo importa en el caso en el que el granjero del otro lado sin las tres cosas
+	// solo importa en el caso en el que el granjero esta del otro lado sin las tres cosas
 endmodule
 
 rewards "crueces"
 	(viajando = false) : 1;
 endrewards
-
-//rewards "sitaciones_de_peligro"
-//	(viajando = true) & (oveja != granjero) & (oveja = lobo | oveja = lechuga): 1;
-//endrewards
