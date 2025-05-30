@@ -5,6 +5,9 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{wrapfig}
+\usepackage{url}
 
 \begin{document}
 
@@ -25,106 +28,194 @@
 \maketitle
 
 \begin{abstract}
-Este documento presenta una introducción a la herramienta PRISM\cite{KNP11}, un entorno para el modelado y análisis formal de sistemas con comportamientos aleatorios o probabilísticos, que permite la verificación rigurosa de propiedades cuantitativas y cualitativas sobre modelos como cadenas de Markov (discretas y continuas), procesos de decisión de Markov y autómatas probabilísticos. Se abordan los principales aspectos relacionados con su desarrollo y aplicación, incluyendo: el contexto de creación de la herramienta, sus objetivos fundamentales, una descripción de sus funcionalidades desde la perspectiva del usuario, los componentes técnicos que la sustentan, casos de estudio documentados —tanto exitosos como con limitaciones—, una comparación con otras herramientas similares en el ámbito de la verificación formal, y un análisis detallado de un caso de estudio seleccionado.
+Este documento presenta un análisis de la herramienta PRISM\cite{KNP11}, un entorno para el modelado y análisis formal de sistemas con comportamientos aleatorios o probabilísticos, que permite la verificación rigurosa de propiedades cuantitativas y cualitativas sobre modelos como cadenas de Markov (discretas y continuas), procesos de decisión de Markov y autómatas probabilísticos. Se abordan los principales aspectos relacionados con su desarrollo y aplicación, incluyendo: el contexto de creación de la herramienta, sus objetivos fundamentales, una descripción de sus funcionalidades desde la perspectiva del usuario, los componentes técnicos que la sustentan, casos de estudio documentados, una comparación con otras herramientas similares en el ámbito de la verificación formal y un análisis detallado de un caso de estudio seleccionado.
 \end{abstract}
 
 \section{Introducción}
 
-Los sistemas informáticos se encuentran cada vez más integrados en múltiples áreas del conocimiento, enfrentando riesgos cada vez más críticos y de mayor impacto. Estos riesgos abarcan desde errores que pueden poner en peligro vidas humanas —como sobredosis de radiación provocado por condiciones de carrera en sistemas médicos \cite{LT93}—, hasta pérdidas económicas multimillonarias —como autodestrucción en cohetes espaciales provocado por conversión incorrecta de punto flotante a entero en sistemas de referencia inercial \cite{Lan96}—. Frente a esta realidad, se vuelve esencial garantizar sistemas más robustos, confiables y con una tolerancia al fallo mínima. Para ello, es necesario recurrir a modelos formales que permitan describir con precisión las partes relevantes del sistema, conservando un nivel de abstracción que facilite su análisis y verificación.
+Los sistemas informáticos se encuentran cada vez más integrados en múltiples áreas del conocimiento, enfrentando riesgos cada vez más críticos y de mayor impacto. Estos riesgos abarcan desde errores que pueden poner en peligro vidas humanas —como sobredosis de radiación provocadas por condiciones de carrera en sistemas médicos \cite{LT93}—, hasta pérdidas económicas multimillonarias —como autodestrucción en cohetes espaciales causado por conversión incorrecta de punto flotante a entero en sistemas de referencia inercial \cite{Lan96}—. Frente a esta realidad, se vuelve esencial garantizar sistemas más robustos, confiables y con tolerancia mínima al fallo. Para ello, es necesario recurrir a modelos formales que permitan describir con precisión las partes relevantes del sistema, conservando un nivel de abstracción que facilite su análisis y verificación.\\
+
+\textit{Organización del trabajo}. La Sección 2 resume los antecedentes, y la Sección 3 describe el contexto de creación. Las Secciones 4 y 5 presentan la herramienta desde el lado del usuario y desde el técnico, respectivamente. La Sección 6 introduce casos de estudio, la 7 compara con otras herramientas y la 8 desarrolla un caso particular. Se cierra con las conclusiones y el trabajo a futuro.
 
 \section{Antecedentes}
+La verificación de modelos (model checking) es una técnica de verificación para la corrección funcional de un sistema. Consiste en explorar exhaustivamente todos los estados posibles del sistema, mediante un enfoque de fuerza bruta, con el objetivo de comprobar que un modelo dado cumple efectivamente con una propiedad específica \cite{BK07}. 
 
-Existen diversas técnicas para verificar la corrección funcional de un sistema, entre las que se incluyen la demostración de teoremas, la simulación, la prueba (testing), y la verificación de modelos (model checking). En nuestro informe, nos enfocamos en esta última, una técnica que consiste en explorar exhaustivamente todos los estados posibles del sistema mediante un enfoque de fuerza bruta, con el objetivo de comprobar que un modelo dado cumple efectivamente con una propiedad específica \cite{BK07}. Este enfoque tradicional de verificación de modelos busca proporcionar una garantía completamente precisa sobre el cumplimiento —o no— de una propiedad en el modelo analizado. Sin embargo, en muchos escenarios no es posible ni deseable ofrecer garantías absolutas. Por ejemplo, en protocolos de comunicación o redes inalámbricas, es necesario considerar una cierta probabilidad de pérdida de mensajes.
+La verificación de modelos probabilísticos (Probabilistic Model Checking), por otro lado, es una extensión de la verificación de modelos clásica que nos permite establecer la validez de una propiedad dentro de un modelo dado. Es diseñada para analizar sistemas que presentan comportamientos estocásticos, permitiendo obtener así valores cuantitativos, como la probabilidad de alcanzar un estado crítico o el tiempo esperado hasta que ocurra un evento.
 
-La verificación de modelos probabilísticos (Probabilistic Model Checking) es una extensión de la verificación de modelos clásica que nos permite establecer la validez de una propiedad dentro de un modelo dado. Es una técnica automática de verificación formal diseñada para analizar sistemas que presentan comportamientos estocásticos.
-A diferencia de la verificación tradicional, cuyo resultado es estrictamente booleano (la propiedad se cumple o no), la verificación probabilística permite obtener valores cuantitativos, como la probabilidad de alcanzar un estado crítico o el tiempo esperado hasta que ocurra un evento. Esta capacidad resulta especialmente útil en el análisis de sistemas que interactúan con entornos inciertos, como redes de comunicación, sistemas embebidos y protocolos distribuidos.
+Para comprobar el modelo de un sistema que muestra un comportamiento estocástico, primero necesitamos construir un modelo probabilístico formal del mismo. Por ello nos enfocaremos en los principales modelos soportados por la herramienta a desarrollar.\\
 
-Para comprobar el modelo de un sistema que muestra un comportamiento estocástico, primero necesitaremos construir un modelo probabilístico formal de ese sistema. Existen varias representaciones de modelos probabilísticos de uso común para sistemas estocásticos, pero nos vamos a enfocar en los principales modelos soportados por la herramienta a desarrollar.
+\textbf{Cadenas de Markov de Tiempo Discreto (DTMC)}: Son modelos en los que el comportamiento del sistema evoluciona en pasos discretos, y en cada paso existe una distribución de probabilidad sobre los posibles estados siguientes. Estas probabilidades deben sumar 1 en cada estado \cite{KNP02}. Se representan como grafos dirigidos cuyas aristas están etiquetadas con probabilidades de transición.\\
 
-\textbf{Cadenas de Markov de Tiempo Discreto (DTMC)}: Son modelos en los que el comportamiento del sistema evoluciona en pasos discretos, y en cada paso existe una distribución de probabilidad sobre los posibles estados siguientes. Se representan como grafos dirigidos etiquetados con probabilidades de transición. Para cada estado, las probabilidades de transición deben sumar $1$\cite{KNP02}. Estos modelos son apropiados para sistemas donde el tiempo se modela como secuencias de eventos discretos y completamente probabilísticos, como protocolos de comunicación simples o sistemas sin decisiones controlables.
+\textbf{Procesos de Decisión de Markov (MDP)}: Extienden las DTMC al introducir no determinismo, lo que permite modelar decisiones o elecciones controlables dentro del sistema. En cada estado, pueden existir varias acciones posibles, y cada acción induce una distribución de probabilidad sobre los estados sucesores.\\
 
-\textbf{Procesos de Decisión de Markov (MDP)}: Extienden DTMC introduciendo no determinismo, lo que permite modelar elecciones o decisiones controlables dentro del sistema. En cada estado, el sistema puede tener varias acciones posibles, y cada acción induce una distribución de probabilidad sobre los estados sucesores. Este modelo es útil para representar la interacción entre el entorno (probabilístico) y un controlador (no determinista). Permiten modelar, por ejemplo, sistemas con múltiples componentes que operan en paralelo de manera asincrónica, donde ciertas decisiones dependen del contexto de ejecución.
+\textbf{Cadenas de Markov de Tiempo Continuo (CTMC)}: Presentan transiciones entre estados que ocurren tras un tiempo aleatorio continuo, en lugar de pasos discretos. Cada transición está asociada a una tasa que determina la probabilidad de pasar de un estado a otro en cierto intervalo de tiempo, de acuerdo con una distribución exponencial.\\
 
-\textbf{Cadenas de Markov de Tiempo Continuo (CTMC)}: Las transiciones entre estados ocurren después de un tiempo continuo aleatorio, no en pasos discretos. Cada transición está asociada con una tasa que determina la probabilidad de moverse de un estado a otro en un cierto tiempo, siguiendo una distribución exponencial. Este tipo de modelos es adecuado para analizar sistemas donde los eventos ocurren de forma continua en el tiempo, como redes de colas o sistemas biológicos.
+Una vez que el sistema ha sido representado mediante un modelo, el siguiente paso es verificar si cumple con una especificación formal. Para ello, pueden emplearse diversos lenguajes de lógica temporal; sin embargo, en este trabajo nos centraremos en aquellos más relevantes y representativos en el contexto de la herramienta que se pretende analizar.\\
 
-Una vez que el sistema está representado por un modelo, queremos comprobar si este cumple una especificación formal. Para ello, se pueden utilizar diversos lenguajes de lógica temporal, pero nuevamente nos enfocaremos en los más relevantes y representativos en el contexto de la herramienta que se pretende construir.
-
-\textbf{Lógica de Árbol Computacional Probabilística (PCTL)}: Es introducida por Hansson y Jonsson en \cite{HH94} como una extensión probabilística de la lógica temporal CTL. Su característica distintiva es el uso del operador probabilístico $P$, que generaliza los cuantificadores $\forall$ y $\exists$ de CTL para incorporar condiciones sobre la probabilidad de ocurrencia de ciertos eventos en un sistema estocástico. Por ejemplo, la fórmula
-\[a\to P_{\sim p}[F^{\le s} b]\]
-se interpreta como "si $a$ ocurre, entonces la probabilidad de que $b$ ocurra en los próximos $s$ pasos satisface la relación $\sim p$". La sintaxis de PCTL se divide en fórmulas de estado y fórmulas de camino, definidas de la siguiente manera:
+\textbf{Lógica de Árbol Computacional Probabilística (PCTL)}: Es introducida por Hansson y Jonsson en \cite{HH94} como una extensión probabilística de la lógica temporal CTL. Su característica distintiva es el uso del operador probabilístico $P$, que generaliza los cuantificadores $\forall$ y $\exists$ de CTL para incorporar condiciones sobre la probabilidad de ocurrencia de ciertos eventos en un sistema estocástico. Acá, $a\to P_{\sim p}[F^{\le s} b]$ indica que "si $a$ ocurre, entonces la probabilidad de que $b$ ocurra en los próximos $s$ pasos satisface la relación $\sim p$". La sintaxis de PCTL se define de la siguiente manera:
 
 \begin{itemize}
     \item \textit{Fórmulas de estado}: \( \phi ::= \text{true} \mid a \mid \phi \land \phi \mid \neg \phi \mid P_{\sim p}[\psi]\)
     \item \textit{Fórmulas de camino}: \(\psi ::= X\ \phi \mid \phi \ U^{[k_1,\ k_2]} \psi \mid \phi \ U \phi \mid F\ \phi \mid G\ \phi\)
 \end{itemize}
-Donde:
-\begin{itemize}
-    \item\(a\) es una proposición atómica,
-    \item\(p \in [0,1]\) es un umbral de probabilidad,
-    \item\(\sim \in \{<, >, \leq, \geq\}\) es un operador de comparación,
-    \item\(k_1,k_2 \in \mathbb{N}\) indica una cota temporal (en pasos discretos).
-    \item \(X=next\), \(F=future\), \(G=globally\), \(U=until\).
-\end{itemize}
+Donde $a$ es una proposición atómica, $p \in [0,1]$ un umbral de probabilidad, $\sim \in \{<, >, \leq, \geq\}$ un operador de comparación, $k_1,k_2 \in \mathbb{N}$ una cota temporal (en pasos discretos). También se denota $X=next$, $F=future$, $G=globally$, $U=until$.\\
 
-\textbf{Lógica Estocástica Continua (CSL)}: Es introducida por Aziz et al. en \cite{ASSB96} y luego extendida por Baier et al. en \cite{BKH99} como una extensión de la lógica anterior con la capacidad de contar con un período variable de transición entre un estado y otro. Sus operadores son similares a los de PCTL pero sustituyen los valores discretos de tiempo por valores continuos. CSL incorpora un operador de estado estacionario, denotado por $S_{\sim p}[\phi]$, que permite razonar sobre el comportamiento a largo plazo del sistema. Esta expresión indica que la probabilidad en estado estacionario de que la fórmula $\phi$ sea verdadera satisface la relación $\sim p$.
+\textbf{Lógica Estocástica Continua (CSL)}: Es introducida por Aziz et al. en \cite{ASSB96} y luego extendida por Baier et al. en \cite{BKH99} como una extensión de la lógica anterior con la capacidad de contar con un período variable de transición entre un estado y otro. Sus operadores son similares a los de PCTL, pero sustituyen los valores discretos de tiempo por valores continuos. CSL incorpora un operador de estado estacionario, denotado por $S_{\sim p}[\phi]$, que permite razonar sobre el comportamiento a largo plazo del sistema. Esta expresión indica que la probabilidad en estado estacionario de que la fórmula $\phi$ sea verdadera satisface la relación $\sim p$.
+
+\section{Contexto de creación de la herramienta}
+PRISM obtiene su nombre de \textit{Probabilistic (Symbolic) Model Checker} y es una herramienta de código abierto para la verificación de modelos probabilísticos. Su desarrollo comenzó en 1998 en la Universidad de Birmingham, y el primer lanzamiento público oficial tuvo lugar en 2001. En 2002 fue presentada formalmente como parte de la tesis doctoral de Dave Parker \cite{Par02}.
+
+Hoy en día, el proyecto es mantenido activamente por el Departamento de Ciencias de la Computación de la Universidad de Oxford, con un repositorio actualizado en GitHub \cite{PRISMGitHub} y versiones disponibles para los sistemas operativos Linux, Windows, macOS y Solaris \cite{PRISMOxford}. Sus principales desarrolladores son Dave Parker, quien lidera el desarrollo del proyecto, y Marta Kwiatkowska (Universidad de Oxford), junto con Gethin Norman (Universidad de Glasgow) \cite{KNP09a}.
+
+Hasta la fecha, se han documentado más de 400 estudios de caso utilizando PRISM en una extensa gama de dominios de aplicación \cite{KwiatkowskaEtaps2024}. La herramienta se emplea ampliamente en el ámbito académico, tanto en investigaciones independientes como en colaboraciones, y también ha sido aplicada en entornos industriales, particularmente en áreas críticas como los sistemas embebidos, los protocolos de comunicación y la seguridad.
+
+Principalmente, PRISM se utiliza en las primeras etapas del desarrollo de sistemas, como la especificación, el diseño y la verificación formal, permitiendo la detección temprana de inconsistencias y errores. No obstante, también puede ser empleada en fases posteriores, como testing o mantenimiento, para validar propiedades del sistema o analizar modelos ya existentes.
 
 \section{Descripción de la herramienta del lado del usuario}
+PRISM cuenta con interfaz gráfica, aunque también puede usarse sobre línea de comando. La interfaz gráfica está compuesta por cuatro pestañas, cada una con una función diferente. Estas son \texttt{Model}, \texttt{Properties}, \texttt{Simulator} y \texttt{Log}.
 
-Prism es una herramienta que cuenta con interfaz gráfica, pero que también puede usarse sobre línea de comando. La interfaz gráfica está compuesta por cuatro pestañas cada una con una función diferente. Estas son 'Model', 'Properties', 'Simulator' y 'Log'.
+En la pestaña \texttt{Model} se especifica el modelo en el lenguaje PRISM. En la primera línea se debe indicar el modelo probabilístico a utilizar. Este puede ser \texttt{dtmc}, \texttt{ctmc}, \texttt{mdp}, \texttt{pta}, \texttt{pomdp} o \texttt{popta}. Un modelo (no confundir con los modelos nombrados recién) en PRISM está formado por uno o más módulos. Cada módulo contiene variables que describen el estado del módulo. Dentro de cada módulo, se describen sus transiciones, que dependen del estado actual del módulo y posiblemente de otros módulos. En DTMC o MDP, cada transición describe la probabilidad de pasar de un estado a otro. En CTMC, hay que especificar tasas en lugar de probabilidades.
 
-En la pestaña 'Model' es donde se especifica el modelo, en el lenguaje PRISM. En la primera línea debemos indicar el modelo probabilístico que vamos a utilizar. Este puede ser 'dtmc', 'ctmc', 'mdp', 'pta', 'pomdp' o 'popta'. Un modelo (no confundir con los modelos nombrados recién) en Prism está formado por uno o más módulos. Cada módulo contiene variables, que describen el estado del módulo. Dentro de cada módulo, se describen sus transiciones, que dependen del estado actual del módulo, y posiblemente de otros módulos. En DTMC o MDP, cada transición describe la probabilidad de de pasar de un estado a otro. En CTMC, hay que especificar tasas en lugar de probabilidades. También cuenta con un sistema de costos y recompensas.
-Para una descripción más detallada del lenguaje, leer la documentacón [TODO: poner ref]
+En la pestaña \texttt{Properties} se especifican las propiedades que queremos verificar. Estas deben escribirse en el lenguaje de especificación de propiedades PRISM, que soporta varias lógicas temporales probabilísticas, tales como PCTL, CSL, LTL probabilístico y PCTL*. Estas propiedades pueden ser de dos tipos. En las del primer tipo, le preguntamos al modelo si cierta propiedad es cierta o no. Por ejemplo, si la probabilidad de llegar a cierto estado es mayor o igual a 0.5. En las del segundo tipo, le pedimos al modelo que calcule algún valor. Por ejemplo, se pueden calcular probabilidades de alcanzar ciertos estados o tiempos esperados hasta que ocurra un evento. Para obtener estos valores esperados se utilizan las estructuras de costos y recompensas, que pueden definirse tanto sobre estados (state rewards) como sobre transiciones (transition rewards). Para una descripción más detallada del lenguaje, leer la documentación \cite{PRISMManual}.
 
-En la pestaña 'Properties' es donde se especifican las propiedades que que queremos verificar. Estas deben escribirse en el lenguaje de especificación de propiedades PRISM, que soporta varias lógicas temporales probabilísticas, tales como PCTL, CSL, LTL probabilístico y PCTL*. Estas propiedades pueden ser de tipos. En las del primer tipo, le preguntamos al modelo si cierta propiedad es cierta o no. Por ejemplo, que la probabilidad de llegar a cierto estado es mayor o igual a 0.5. En las del segundo tipo, le pedimos al modelo que calcule algún valor. Por ejemplo, la probabilidad de llegar a cierto estado o tiempo esperado hasta que ocurra algo. Para calcular estos valores esperados se usan los costos y recompensas.
-Para una descripción más detallada del lenguaje, leer la documentacón [TODO: poner ref]
+En la pestaña \texttt{Simulator} se pueden realizar simulaciones del modelo con una cantidad específica de pasos y transiciones, tanto aleatorias como manuales. Cuenta con una tabla de valores de las variables en cada paso y permite generar gráficos de las simulaciones realizadas. La herramienta también permite visualizar los modelos, mediante la generación de archivos .dot de los grafos asociados a los mismos.
 
-En la pestaña 'Simulator' podemos realizar simulaciones del modelo. En estas simulaciones, podemos decirle a la herramienta que haga una cantidad específica de pasos aleatoriamente o podemos elegir nosotros manualmente las transiciones. Cuenta con una tabla que nos permite ver los valores de las variables en cada paso. También se pueden generar gráficos de estas simulaciones.
+PRISM analiza principalmente propiedades cuantitativas y probabilísticas mediante lógicas temporales probabilísticas. Sin embargo, también es posible especificar propiedades no probabilísticas utilizando lógica temporal como CTL o LTL. Además, si una propiedad no se cumple, la herramienta es capaz de generar contraejemplos que ilustran el comportamiento que lleva a dicha violación.
 
-La herramienta permite visualizar los modelos, mediante de la generación de archivos .dot de los grafos asociados a los modelos.
+\section{Aspectos técnicos de la herramienta}
+PRISM representa el espacio de estados de manera híbrida, utilizando una combinación entre las técnicas simbólica y explícita \cite{KNP04b}\cite{Par02}.
+Se almacena la matriz de transición en un diagrama de decisión binario multiterminal (MTBDD), utilizando un arreglo completo para el vector de iteración. Considerando el problema de realizar una multiplicación matriz-vector utilizando estas dos estructuras de datos contrastantes.
 
-PRISM permite también especifcar propiedades no probabilísticas, en CTL o LTL y es capaz de reportar contraejemplos cuando una propiedad no se cumple.
+Esto es suficiente para implementar diversas técnicas de cálculo numérico, como las requeridas para la comprobación probabilística de modelos. En particular, esto es directamente aplicable a la comprobación de modelos PCTL de DTMC y a la comprobación de modelos CSL de CTMC, siempre que los sistemas de ecuaciones lineales se resuelvan mediante los métodos de Jacobi o JOR (Jacobi con sobrerrelajación). De hecho, las técnicas también pueden extenderse a la comprobación de modelos basados en MDP. 
 
-\section{Caso de estudio: Cruzando el río probabilístico}
+Por otro lado, PRISM incorpora diversas técnicas de reducción para optimizar el análisis. Por ejemplo, la reducción por simetría, que permite minimizar el número de estados únicos analizados, y la eliminación de estados inalcanzables mediante análisis de alcanzabilidad. También utiliza refinamiento cuantitativo de abstracciones, una técnica automática y extensible que construye y mejora sucesivamente modelos probabilísticos simplificados del sistema. Esta técnica se basa en la teoría de juegos y ha sido aplicada con éxito tanto a modelos temporizados como a procesos de decisión de Markov (MDP) y software probabilístico, permitiendo una verificación escalable de sistemas grandes o infinitos.
 
-Para ilustrar el funcionamiento de la herramienta, vamos a modelar una versión probabilística del problema de cruzar el río. [ref] Este es un problema clásico en la cultura popular. La formulación que proponemos es la siguiente:
+La precisión de los resultados depende del tipo de propiedad verificada. Para propiedades cualitativas, como las de alcanzabilidad, los resultados son exactos. En cambio, para propiedades cuantitativas que requieren cálculos numéricos, como probabilidades de estado estacionario o tiempos esperados, se utilizan métodos iterativos que aproximan la solución con una precisión configurable. Esto implica que los resultados pueden ser aproximados, pero dentro de márgenes controlados de error.
 
-Un granjero quiere cruzar al otro lado del río, junto con un lobo, una oveja y una lechuga. Para hacerlo, cuenta con un bote con el cual puede cruzarlo con a lo sumo un objeto más. En cada momento, si hay $e$ objetos de ese lado del río, elije qué hacer con igual probabilidad entre las $e+1$ opciones, que son cruzar el río solo o elegir uno de los $e$ objetos y cruzar con él. Si mientras está cruzando quedan del mismo lado el lobo y la oveja o la oveja y la lechuga, con probabilidad $p$ alguien resulta comido (la oveja en el primer caso, la lechuga en el segundo, y si ocurren ambos a la vez, cualquiera de ellos con igual probabilidad). Calcular la probabilidad de que el granjero pueda llegar al otro lado con los tres objetos.
+Finalmente, no se reportan falsos positivos ni negativos en sentido lógico. La posible inexactitud proviene del uso de métodos numéricos iterativos, los cuales podrían no alcanzar la precisión requerida si los parámetros de convergencia no están bien ajustados. Sin embargo, esto no compromete la corrección del enfoque algorítmico implementado por PRISM.
 
-Nuestro modelo de este problema en PRISM no fue incluído en el texto de este trabajo, pero puede encontrarse al pie de página. [poner] Para simplicar el modelado, usamos que en PRISM el no determinismo en una DTMC se traduce a una transición aleatoria con igual probabilidad entre todas las opciones posibles en ese momento. No incluiremos su grafo pues tiene $72$ estados y $124$ transiciones.
+\section{Casos de estudio}
 
-En las formulaciones usuales de este problema se suele usar $p=1$, es decir, siempre que alguien pueda comer, lo va a hacer. En esta versión, la probabilidad de poder cruzar es de aproximadamente $0.62\%$. En el otro extremo, si $p=0$ entonces nadie resulta comido y por lo tanto la probabilidad es del $100\%$. En la figura 1 podemos ver cómo varía la probabilidad de cruzar en función de $p$, para los valores $p=0.1k$ con $k$ entero entre $0$ y $10$. %Todo: incluir figuara
+Se ha utilizado con éxito en el estudio de sistemas variados, incluyendo algoritmos distribuidos aleatorizados, protocolos de red, seguridad, procesos biológicos y teoría de juegos \cite{PRISMCaseStudies}. Se presentan brevemente dos casos de estudio \cite{PRISMBRP}\cite{PRISMFairExchange}.\\
 
-También usamos la herramienta para calcular cómo va incrementando la probabilidad de poder cruzar en función de la cantidad de pasos que realizamos. En la figura 2 pueden verse estas probabilidades para $p=\frac{1}{2}$ y con cantidades de pasos entre $0$ y $100$. Las mesetas que se forman debido a que solo cada $4$ pasos el granjero llega al lado derecho del río.
+\textbf{Bounded Retransmission Protocol}
 
-Además, verificamos las siguientes propiedades 'En algún momento se comen a la oveja con probabilidad $1$' y 'En algún momento se comen a la oveja'. Observar que la primera es probabilística y la segunda no. Al verificarlas, la primera resulta verdadera pero la segunda resulta falsa. Esto es porque existe un camino infinito en el que no se comen a la oveja, pero este tiene probabilidad $0$ de ocurrir. PRISM no reporta contraejemplos en estos casos infinitos. Si en cambio, verificamos que 'Es posible que crucen todos al otro lado' (que tampoco es probabilística), esto resulta verdadero y PRISM nos da el testigo de cómo hacerlo mendiante el simulador.
+\textit{(D'Argenio, Jeannet, Jensen \& Larsen)}
 
-Usando el sistema de recompensas de PRISM, calculamos el valor esperado de la cantidad de cruces que ocurren hasta que se comen a alguien, y hasta que se coman a la oveja. Para $p=\frac{1}{2}$ estos valores dieron aproximadamente $6.14$ y $14.52$. La cantidad esperada de cruces que ocurren hasta que resolvemos el problema o es imposible de resolver (porque se comieron a alguien) es de $5.55$ cruces.
+El BRP es un protocolo para enviar un archivo en partes, permitiendo un número limitado de reintentos por fragmento. Cuando no se logra transmitir un fragmento después de cierto número de intentos, se reporta un error. El modelo fue construido en PRISM como un proceso probabilístico del tipo DTMC. El sistema incluye módulos para el emisor, el receptor, un tester que controla el envío y dos canales con posibilidad de pérdida: uno para los mensajes y otro para los ACKs.
+
+En el caso de estudio se analizaron varios tamaños del modelo. Nosotros nos centraremos en uno en particular, con 16 fragmentos (N = 16) y hasta 2 reintentos por fragmento (MAX = 2). Los tiempos de verificación fueron bajos en todos los casos, con un máximo de 0.13 segundos (fase de precómputo + fase de algoritmo principal). El número de iteraciones necesarias varió según la propiedad verificada, alcanzando un máximo de 246 (también considerando ambas fases). Además, algunas propiedades se resolvieron en solo 0.001 segundos mediante verificación de invariantes.\\
+
+\textbf{Probabilistic Fair Exchange}
+\textit{(Rabin)}
+
+Se analiza el protocolo de Rabin para intercambio justo probabilístico entre dos partes asistidas por un tercero confiable. Las partes intercambian compromisos, condicionados a la publicación, en una fecha futura, de un número aleatorio entre 1 y $N$ por parte de un tercero. Si B envía el último mensaje, ambas partes quedan comprometidas con igual probabilidad; si lo hace A, hay una probabilidad de $1/N$ de que solo A lo esté. El protocolo se modeló como un proceso de decisión de Markov (MDP) en PRISM, y el análisis confirmó que la probabilidad de estados injustos coincide con el valor teórico.
+
+A modo ilustrativo, considérese un escenario en el que A se compromete a entregar un libro y B un disco, condicionados al sorteo de un número entre $1$ y $N$ en una fecha futura. Si el último mensaje enviado antes de dicha fecha fue de A, indicando un compromiso para el número $i+1$, y B no respondió, entonces existe una probabilidad $1/N$ de que el número sorteado sea exactamente $i+1$. En tal caso, A queda comprometida contractualmente y debe entregarle el libro a B, mientras que B no debe entregarle el disco a A, lo que evidencia un posible estado de injusticia inherente al protocolo.
+
+El análisis en PRISM confirmó que la probabilidad máxima de alcanzar un estado injusto coincide con el valor teórico de $1/N$. Se verificó para distintos valores de $N$, observándose una correspondencia precisa en todos los casos: por ejemplo, $0.1$ para $N = 10$, $0.01$ para $N = 100$, y $0.001$ para $N = 1000$. Asimismo, se constató que la probabilidad de compromiso mutuo crece linealmente con el número de rondas de intercambio.
+
+\section{Comparación con otras herramientas}
+Hay muchas características de la herramienta que podemos destacar, basado en el reporte de la \textit{Comparación de herramientas para el análisis de datos cuantitativos} del 2019 \cite{Hahn2019}, donde se comparan modelos formales cuantitativos que capturan el comportamiento probabilístico, aspectos en tiempo real o dinámicas continuas generales.
+
+Entre ellos, aunque de las cinco herramientas de propósito general presentadas -ePMC, mcsta, modes, PRISM y Storm- se destaca a Storm como la más versátil y, en cuanto a los formalismos que admiten, a PRISM y Storm como las que implementan la gama más amplia de propiedades, seguidas de ePMC. También se destaca a PRISM como la herramienta más usable, dada su extensa documentación en línea, una interfaz gráfica de usuario y descargas de binarios para todas las plataformas que solo dependen de Java.
+
+Por otro lado, los resultados de la evaluación de rendimiento resaltan que PRISM y Storm pueden beneficiarse significativamente del uso de configuraciones no predeterminadas, ajustadas por expertos según los puntos de referencia individuales. mcsta muestra mejoras moderadas con un ajuste más simple.
+
+También, dentro de muchas otras características presentadas por las distintas herramientas, los gráficos de cuantiles y dispersión muestran que Storm y PRISM lideran en velocidad y número de instancias resueltas, siendo Storm superior en configuraciones específicas. Sin embargo, todas las herramientas evaluadas fueron las más eficientes en ciertos casos particulares, y las especializadas resolvieron instancias únicas que otras no pudieron, cumpliendo su propósito. Casos como el modelo Haddad-Monmege expusieron limitaciones en precisión de ePMC, mcsta y PRISM bajo ciertas condiciones, mientras que la comparación entre configuraciones demostró que algunos errores o tiempos de espera pueden evitarse con ajustes adecuados, aunque esto no siempre es viable para usuarios comunes.
+
+\section{Caso de estudio elegido: Cruzando el río probabilístico}
+Para ilustrar el funcionamiento de la herramienta, vamos a modelar una versión probabilística del problema de ``cruzar el río'' \cite{Voolaid2007}, que es un acertijo lógico de la cultura popular, usado principalmente con fines de entretenimiento.
+
+Un granjero quiere cruzar al otro lado del río junto con un lobo, una oveja y una lechuga. Para hacerlo, cuenta con un bote en el cual puede llevar, a lo sumo, un objeto. En cada momento, si hay $n$ objetos de ese lado del río, elige qué llevar de entre las $n+1$ opciones (nada o uno de los $n$ objetos) con igual probabilidad. Mientras el granjero está cruzando el río, si quedan del mismo lado el lobo junto con la oveja, la oveja junto con la lechuga o los tres, entonces alguien tiene probabilidad $p$ de ser comido —la oveja, la lechuga y ambos con igual probabilidad respectivamente. Se busca entonces calcular la probabilidad de que el granjero pueda llegar al otro lado con los tres objetos.
+
+Para lograr un modelado simple del problema\footnote[1]{\href{https://github.com/JulietaStorino/Software-Engineering-II-FAMAF/blob/main/caso_estudio/crossing.pm}{Link al repositorio}} usamos que, en PRISM, el no determinismo en una DTMC se traduce a una transición aleatoria con igual probabilidad entre todas las opciones posibles en ese momento. No incluiremos su grafo, pues tiene $72$ estados y $124$ transiciones.
+
+En las formulaciones usuales del problema, siempre que alguien pueda ser comido, lo será, es decir, $p=1$. En esa versión, la probabilidad de cruzar exitosamente el río es de $0.006$ (o sea, $0.6\%$). Además, calculamos cómo varía la probabilidad de cruzar exitosamente para valores de $p$ entre $p=0$ y $p=1$, con saltos de a $0.1$ (figura 1). También calculamos cómo varía la probabilidad de cruzar exitosamente con $p=0.5$ y con cantidades de pasos entre $0$ y $100$ (figura 2). En el segundo caso, podemos notar que se forman \textit{mesetas} debido a que solo cada $4$ pasos el granjero llega al lado derecho del río, lo que genera saltos discretos en la probabilidad de éxito.
+
+Verificamos las propiedades ``Con probabilidad $1$, en algún momento se comen a la oveja'' y ``En algún momento se comen a la oveja'' —la primera es probabilística y la segunda no— obteniendo que la primera resulta verdadera, pero la segunda resulta falsa. Esto es porque existe un camino infinito en el que no se comen a la oveja, pero este tiene probabilidad $0$ de ocurrir. PRISM no reporta contraejemplos en estos casos infinitos. Si en cambio verificamos la propiedad ``Cruzan todos al otro lado'' (que tampoco es probabilística), esto resulta verdadero y PRISM nos da el testigo de cómo hacerlo mediante el simulador.
+
+Por último, usando el sistema de recompensas de PRISM, calculamos el valor esperado de ``la cantidad de cruces que ocurren hasta que se comen a alguien'' y ``la cantidad de cruces que ocurren hasta resolver el problema o hasta que el problema no se puede resolver'' —porque se comieron a alguien. Para $p=0.5$, estos valores dieron aproximadamente $6.14$ y $5.55$ cruces respectivamente.
+
+\begin{figure}
+  \centering
+  \text{\textbf{Figura 1} (izq.) y \textbf{Figura 2} (der.)}
+  \includegraphics[width=12cm]{graficos.png}
+\end{figure}
+
+\section{Conclusiones}
+PRISM se destaca en el ámbito de verificación de modelos probabilísticos, para el cual fue desarrollado, por su equilibrio entre usabilidad, amplitud de funcionalidades y buen rendimiento en una amplia variedad de instancias. Su documentación extensa, interfaz gráfica y disponibilidad multiplataforma la hacen especialmente accesible para usuarios no expertos, mientras que su capacidad para seleccionar motores de análisis eficientes por instancia le permite mantener un rendimiento competitivo frente a herramientas más recientes.
+
+Por nuestra parte, la herramienta nos resultó bastante fácil de instalar y de utilizar. Esto se debe a que el manual \cite{PRISMManual} es de fácil lectura y es muy didáctico. Los modelos de ejemplo que trae también fueron de gran ayuda.
+
+En un posible trabajo futuro, se podrían modelar problemas similares al presentado en este trabajo, como por ejemplo el de los esposos celosos o el de los misioneros y los caníbales. \cite{Efimova2018}
+
+\newpage
 
 \begin{thebibliography}{8}
 
 \bibitem{KNP11}
 Kwiatkowska, M., Norman, G., Parker, D.: PRISM 4.0: Verification of Probabilistic Real-time Systems. In: Gopalakrishnan, G., Qadeer, S. (eds.) CAV 2011. LNCS, vol. 6806, pp. 585--591. Springer, Heidelberg (2011)
 
-\bibitem{KNP02}
-Kwiatkowska, M., Norman, G., Parker, D.: PRISM: Probabilistic Symbolic Model Checker. In: Field, T., Harrison, P.G., Bradley, J.T., Harder, U. (eds.) TOOLS 2002. LNCS, vol. 2324, pp. 200--204. Springer, Heidelberg (2002)
+\bibitem{LT93}
+Leveson, N.G., Turner, C.S.: An Investigation of the Therac-25 Accidents. IEEE Computer 26(7), 18--41 (1993)
+
+\bibitem{Lan96}
+Le Lann, G.: The Ariane 5 Flight 501 Failure -- A Case Study in System Engineering for Computing Systems. Rapport de recherche 3079 (1996)
 
 \bibitem{BK07}
 Baier, C., Katoen, J.-P.: Principles of Model Checking. MIT Press, Cambridge (2007)
 
-\bibitem{LT93}
-Leveson, N.G., Turner, C.S.: An Investigation of the Therac-25 Accidents. IEEE Computer \textbf{26}(7), 18--41 (1993)
-
-\bibitem{Lan96}
-Le Lann, G.: The Ariane 5 Flight 501 Failure -- A Case Study in System Engineering for Computing Systems. Rapport de recherche \textbf{3079} (1996)
+\bibitem{KNP02}
+Kwiatkowska, M., Norman, G., Parker, D.: PRISM: Probabilistic Symbolic Model Checker. In: Field, T., Harrison, P.G., Bradley, J.T., Harder, U. (eds.) TOOLS 2002. LNCS, vol. 2324, pp. 200--204. Springer, Heidelberg (2002)
 
 \bibitem{HH94}
-Hansson, H., Jonsson, B.: A Logic for Reasoning about Time and Probability. Formal Aspects of Computing \textbf{6}(5), 512--535 (1994)
+Hansson, H., Jonsson, B.: A Logic for Reasoning about Time and Probability. Formal Aspects of Computing 6(5), 512--535 (1994)
 
 \bibitem{ASSB96}
 Aziz, A., Sanwal, K., Singhal, V., Brayton, R.: Verifying Continuous Time Markov Chains. In: CAV 1996. LNCS, vol. 1102, pp. 269--276. Springer, Heidelberg (1996)
 
 \bibitem{BKH99}
 Baier, C., Katoen, J.-P., Hermanns, H.: Approximate Symbolic Model Checking of Continuous-Time Markov Chains. In: CONCUR 1999. LNCS, vol. 1664, pp. 146--161. Springer, Heidelberg (1999)
+
+\bibitem{Par02}
+Parker, D.: Implementation of Symbolic Model Checking for Probabilistic Systems. PhD thesis, University of Birmingham (2002)
+
+\bibitem{PRISMGitHub}
+PRISM Model Checker – GitHub Repository. README file. \url{https://github.com/prismmodelchecker/prism/blob/master/README.md}. Último acceso: mayo 2025
+
+\bibitem{PRISMOxford}
+PRISM Model Checker – University of Oxford. \url{https://www.cs.ox.ac.uk/activities/prism/}. Último acceso: mayo 2025
+
+\bibitem{KNP09a}
+Kwiatkowska, M., Norman, G., Parker, D.: PRISM: Probabilistic Model Checking for Performance and Reliability Analysis. ACM SIGMETRICS Performance Evaluation Review 36(4), 40--45 (2009)
+
+\bibitem{KwiatkowskaEtaps2024}
+Kwiatkowska, M. (2024, abril). PRISM: ETAPS Test-of-Time Tool Award 2024 [Presentación de conferencia]. European Joint Conferences on Theory and Practice of Software (ETAPS 2024), Luxemburgo.
+
+\bibitem{PRISMManual}
+PRISM Model Checker. PRISM Manual (versión en línea). Disponible en: \url{https://www.prismmodelchecker.org/manual/Main/AllOnOnePage}. Último acceso: mayo 2025
+
+\bibitem{KNP04b}
+Kwiatkowska, M., Norman, G., Parker, D.: Probabilistic Symbolic Model Checking with PRISM: A Hybrid Approach. International Journal on Software Tools for Technology Transfer (STTT) 6(2), 128--142 (2004)
+
+\bibitem{PRISMCaseStudies}
+PRISM Model Checker: Case Studies Index. \url{https://www.prismmodelchecker.org/casestudies/index.php}. Último acceso: mayo 2025
+
+\bibitem{PRISMBRP}
+PRISM Model Checker: Case Study – Bounded Retransmission Protocol (BRP). \url{https://www.prismmodelchecker.org/casestudies/brp.php}. Último acceso: mayo 2025
+
+\bibitem{PRISMFairExchange}
+PRISM Model Checker: Case Study – Probabilistic Fair Exchange. \url{https://www.prismmodelchecker.org/casestudies/fairexchange.php}. Último acceso: mayo 2025
+
+\bibitem{Hahn2019}
+Hahn, E. M., Hartmanns, A., Hensel, C., Klauck, M., Klein, J., Kretínský, J., Parker, D., Quatmann, T., Ruijters, E., Steinmetz, M.: The 2019 comparison of tools for the analysis of quantitative formal models - (QComp 2019 competition report). In: TACAS (3), LNCS, vol. 11429, pp. 69–92. Springer (2019)
+
+\bibitem{Voolaid2007}
+Voolaid, Piret. (2007). Carrying a Wolf, a Goat, and a Cabbage across the Stream. Metamorphoses of ATU 1579. Folklore (Tartu). 35. 10.7592/FEJF2007.35.voolaid. 
+
+\bibitem{Efimova2018}
+Efimova, Elena. (2018). River Crossing Problems: Algebraic Approach. 10.48550/arXiv.1802.09369. 
 
 \end{thebibliography}
 \end{document}
