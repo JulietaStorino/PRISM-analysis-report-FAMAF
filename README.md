@@ -1,4 +1,4 @@
-# **Title:** PRISM: Formal Verification of Systems with Probabilistic Models
+# PRISM: Formal Verification of Systems with Probabilistic Models
 ## Software Engineering II - FAMAF - UNC
 
 ### authors
